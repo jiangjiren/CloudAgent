@@ -135,6 +135,9 @@
     },
     "clickToChangeMode": "İzin modunu değiştirmek için tıkla (veya girdide Tab tuşuna bas)",
     "showAllCommands": "Tüm komutları göster",
+    "moreActions": "Daha fazla",
+    "tokenUsage": "Token kullanımı",
+    "tokensUsed": "token kullanıldı",
     "clearInput": "Girdiyi temizle",
     "scrollToBottom": "En alta git"
   },

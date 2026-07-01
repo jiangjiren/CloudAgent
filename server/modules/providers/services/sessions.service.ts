@@ -62,6 +62,103 @@ function resolveProjectDisplayName(
   return path.basename(projectPath) || projectPath;
 }
 
+const COMPACT_SUCCESS_TOOL_RESULTS = new Set(['view_image']);
+
+function stringifyToolInput(input: unknown): Record<string, unknown> | null {
+  if (!input) {
+    return null;
+  }
+
+  if (typeof input === 'object') {
+    return input as Record<string, unknown>;
+  }
+
+  if (typeof input !== 'string') {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(input);
+    return parsed && typeof parsed === 'object' ? parsed as Record<string, unknown> : null;
+  } catch {
+    return null;
+  }
+}
+
+function compactToolResultContent(message: NormalizedMessage): string {
+  const input = stringifyToolInput(message.toolInput);
+  const imagePath =
+    typeof input?.path === 'string'
+      ? input.path
+      : typeof input?.file_path === 'string'
+        ? input.file_path
+        : null;
+
+  return imagePath
+    ? `[${message.toolName} result omitted: image data for ${imagePath}]`
+    : `[${message.toolName} result omitted: image data]`;
+}
+
+function compactLargeAttachedToolResults(result: FetchHistoryResult): FetchHistoryResult {
+  let changed = false;
+  const messages = result.messages.map((message) => {
+    if (
+      message.kind !== 'tool_use' ||
+      !message.toolName ||
+      !COMPACT_SUCCESS_TOOL_RESULTS.has(message.toolName) ||
+      !message.toolResult ||
+      message.toolResult.isError
+    ) {
+      return message;
+    }
+
+    changed = true;
+    return {
+      ...message,
+      toolResult: {
+        ...message.toolResult,
+        content: compactToolResultContent(message),
+        toolUseResult: undefined,
+      },
+    };
+  });
+
+  return changed ? { ...result, messages } : result;
+}
+
+function removeAttachedToolResults(result: FetchHistoryResult): FetchHistoryResult {
+  const attachedToolResultIds = new Set<string>();
+
+  for (const message of result.messages) {
+    if (message.kind === 'tool_use' && message.toolId && message.toolResult) {
+      attachedToolResultIds.add(message.toolId);
+    }
+  }
+
+  if (attachedToolResultIds.size === 0) {
+    return result;
+  }
+
+  const originalPageLength = result.messages.length;
+  const messages = result.messages.filter(
+    (message) => !(message.kind === 'tool_result' && message.toolId && attachedToolResultIds.has(message.toolId)),
+  );
+
+  if (messages.length === originalPageLength) {
+    return result;
+  }
+
+  return {
+    ...result,
+    messages,
+    nextOffset: result.offset + originalPageLength,
+  };
+}
+
+function prepareFetchHistoryResult(result: FetchHistoryResult): FetchHistoryResult {
+  return compactLargeAttachedToolResults(removeAttachedToolResults(result));
+}
+
 /**
  * Application service for provider-backed session message operations.
  *
@@ -111,7 +208,7 @@ export const sessionsService = {
       limit: options.limit ?? null,
       offset: options.offset ?? 0,
       projectPath: session.project_path ?? '',
-    });
+    }).then(prepareFetchHistoryResult);
   },
 
   /**

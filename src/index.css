@@ -21,6 +21,26 @@
   }
 }
 
+@keyframes assistant-pending-dot {
+  0%, 60%, 100% {
+    opacity: 0.28;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+.assistant-pending-dot {
+  animation: assistant-pending-dot 1.4s infinite ease-in-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assistant-pending-dot {
+    animation: none;
+    opacity: 0.75;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

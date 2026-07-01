@@ -1,7 +1,7 @@
 import type { LoadingProgress, Project, ProjectSession, LLMProvider } from '../../../types/app';
 
 export type ProjectSortOrder = 'name' | 'date';
-export type SidebarSearchMode = 'projects' | 'conversations' | 'archived';
+export type SidebarSearchMode = 'all' | 'projects' | 'conversations' | 'archived';
 export type ArchivedProjectListItem = Project & { isArchived: true };
 
 export type SessionWithProvider = ProjectSession & {
@@ -24,6 +24,7 @@ export type ArchivedSessionListItem = {
 export type DeleteProjectConfirmation = {
   project: Project;
   sessionCount: number;
+  intent?: 'archive' | 'delete' | 'choose';
 };
 
 // Delete confirmation payload used by sidebar UX. `projectId`/`provider` are

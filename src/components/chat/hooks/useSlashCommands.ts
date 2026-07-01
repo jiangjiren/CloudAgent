@@ -110,11 +110,11 @@ const filterSlashCommands = (
     return commands;
   }
 
-  const commandPrefix = normalizedQuery.startsWith('/')
-    ? normalizedQuery
-    : `/${normalizedQuery}`;
+  const commandPrefixes = normalizedQuery.startsWith('/') || normalizedQuery.startsWith('$')
+    ? [normalizedQuery]
+    : [`/${normalizedQuery}`, `$${normalizedQuery}`];
   const namePrefixMatches = commands.filter((command) =>
-    command.name.toLowerCase().startsWith(commandPrefix),
+    commandPrefixes.some((commandPrefix) => command.name.toLowerCase().startsWith(commandPrefix)),
   );
 
   // Namespaced commands should behave like path completion. Once a provider

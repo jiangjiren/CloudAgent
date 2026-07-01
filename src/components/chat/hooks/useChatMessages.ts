@@ -4,13 +4,84 @@
  */
 
 import type { NormalizedMessage } from '../../../stores/useSessionStore';
-import type { ChatMessage, SubagentChildTool } from '../types/types';
+import type { ChatImage, ChatMessage, SubagentChildTool } from '../types/types';
+import { shouldHideToolResult } from '../tools/configs/toolConfigs';
 import { decodeHtmlEntities, unescapeWithMathProtection, formatUsageLimitText } from '../utils/chatFormatting';
 
+const MAX_RENDERED_TOOL_RESULT_CHARS = 50000;
+
 function formatToolResultContent(content: unknown): string {
-  const text = typeof content === 'string' ? content : JSON.stringify(content);
+  const serialized = typeof content === 'string' ? content : JSON.stringify(content);
+  const text = typeof serialized === 'string' ? serialized : String(content ?? '');
   const toolUseErrorMatch = /^<tool_use_error>([\s\S]*)<\/tool_use_error>$/.exec(text.trim());
   return toolUseErrorMatch ? toolUseErrorMatch[1] : text;
+}
+
+function measureToolResultContent(content: unknown): number {
+  if (typeof content === 'string') {
+    return content.length;
+  }
+
+  try {
+    const serialized = JSON.stringify(content);
+    return typeof serialized === 'string' ? serialized.length : 0;
+  } catch {
+    return String(content ?? '').length;
+  }
+}
+
+function buildToolResultForRender(toolName: string, rawToolResult: NormalizedMessage): ChatMessage['toolResult'] {
+  const isError = Boolean(rawToolResult.isError);
+  const rawContent = rawToolResult.content;
+  const toolUseResult = (rawToolResult as any).toolUseResult;
+  const rawResult = {
+    content: rawContent,
+    isError,
+    toolUseResult,
+  };
+
+  if (!isError && shouldHideToolResult(toolName, rawResult)) {
+    return { content: '', isError: false };
+  }
+
+  const contentLength = measureToolResultContent(rawContent);
+  if (!isError && contentLength > MAX_RENDERED_TOOL_RESULT_CHARS) {
+    return {
+      content: `[Tool result omitted from initial render: ${contentLength} characters]`,
+      isError: false,
+    };
+  }
+
+  return {
+    content: formatToolResultContent(rawContent),
+    isError,
+    toolUseResult,
+  };
+}
+
+function normalizeMessageImages(images: NormalizedMessage['images']): ChatImage[] | undefined {
+  if (!Array.isArray(images) || images.length === 0) {
+    return undefined;
+  }
+
+  const normalized = images
+    .map((image, index): ChatImage | null => {
+      if (typeof image === 'string') {
+        return { data: image, name: `image-${index + 1}` };
+      }
+
+      if (!image || typeof image !== 'object' || typeof image.data !== 'string') {
+        return null;
+      }
+
+      return {
+        data: image.data,
+        name: typeof image.name === 'string' && image.name ? image.name : `image-${index + 1}`,
+      };
+    })
+    .filter((image): image is ChatImage => Boolean(image));
+
+  return normalized.length > 0 ? normalized : undefined;
 }
 
 /**
@@ -54,6 +125,7 @@ export function normalizedToChatMessages(messages: NormalizedMessage[]): ChatMes
         if (!content.trim()) continue;
 
         if (msg.role === 'user') {
+          const images = normalizeMessageImages(msg.images);
           // Parse task notifications
           const taskNotifRegex = /<task-notification>\s*<task-id>[^<]*<\/task-id>\s*<output-file>[^<]*<\/output-file>\s*<status>([^<]*)<\/status>\s*<summary>([^<]*)<\/summary>\s*<\/task-notification>/g;
           const taskNotifMatch = taskNotifRegex.exec(content);
@@ -71,6 +143,7 @@ export function normalizedToChatMessages(messages: NormalizedMessage[]): ChatMes
               type: 'user',
               content: unescapeWithMathProtection(decodeHtmlEntities(content)),
               timestamp: msg.timestamp,
+              images,
               ...sharedMetadata,
             });
           }
@@ -107,11 +180,7 @@ export function normalizedToChatMessages(messages: NormalizedMessage[]): ChatMes
         }
 
         const toolResult = tr
-          ? {
-              content: formatToolResultContent(tr.content),
-              isError: Boolean(tr.isError),
-              toolUseResult: (tr as any).toolUseResult,
-            }
+          ? buildToolResultForRender(msg.toolName || 'UnknownTool', tr)
           : null;
 
         converted.push({

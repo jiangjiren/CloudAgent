@@ -2,12 +2,10 @@ import { useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { AlertTriangle, EyeOff, Trash2 } from 'lucide-react';
 import type { TFunction } from 'i18next';
+
 import { Button } from '../../../../shared/view/ui';
 import Settings from '../../../settings/view/Settings';
-import VersionUpgradeModal from '../../../version-upgrade/view';
 import type { Project } from '../../../../types/app';
-import type { ReleaseInfo } from '../../../../types/sharedTypes';
-import type { InstallMode } from '../../../../hooks/useVersionCheck';
 import { normalizeProjectForSettings } from '../../utils/utils';
 import type { DeleteProjectConfirmation, SessionDeleteConfirmation, SettingsProject } from '../../types/types';
 import ProjectCreationWizard from '../../../project-creation-wizard';
@@ -26,12 +24,6 @@ type SidebarModalsProps = {
   sessionDeleteConfirmation: SessionDeleteConfirmation | null;
   onCancelDeleteSession: () => void;
   onConfirmDeleteSession: (hardDelete?: boolean) => void;
-  showVersionModal: boolean;
-  onCloseVersionModal: () => void;
-  releaseInfo: ReleaseInfo | null;
-  currentVersion: string;
-  latestVersion: string | null;
-  installMode: InstallMode;
   t: TFunction;
 };
 
@@ -62,12 +54,6 @@ export default function SidebarModals({
   sessionDeleteConfirmation,
   onCancelDeleteSession,
   onConfirmDeleteSession,
-  showVersionModal,
-  onCloseVersionModal,
-  releaseInfo,
-  currentVersion,
-  latestVersion,
-  installMode,
   t,
 }: SidebarModalsProps) {
   // Settings expects project identity/path fields to be present for dropdown labels and local-scope MCP config.
@@ -75,6 +61,15 @@ export default function SidebarModals({
     () => projects.map(normalizeProjectForSettings),
     [projects],
   );
+  const projectDeleteIntent = deleteConfirmation?.intent ?? 'choose';
+  const showArchiveProjectAction = projectDeleteIntent === 'archive' || projectDeleteIntent === 'choose';
+  const showDeleteProjectAction = projectDeleteIntent === 'delete' || projectDeleteIntent === 'choose';
+  const projectDialogTitle =
+    projectDeleteIntent === 'archive'
+      ? t('deleteConfirmation.archiveProject', 'Archive project')
+      : projectDeleteIntent === 'delete'
+        ? t('deleteConfirmation.deleteProjectPermanently', 'Delete project')
+        : t('deleteConfirmation.deleteProject');
 
   return (
     <>
@@ -109,7 +104,7 @@ export default function SidebarModals({
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="mb-2 text-lg font-semibold text-foreground">
-                      {t('deleteConfirmation.deleteProject')}
+                      {projectDialogTitle}
                     </h3>
                     <p className="mb-1 text-sm text-muted-foreground">
                       {t('deleteConfirmation.confirmDelete')}{' '}
@@ -127,22 +122,26 @@ export default function SidebarModals({
                 </div>
               </div>
               <div className="flex flex-col gap-2 border-t border-border bg-muted/30 p-4">
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => onConfirmDeleteProject(false)}
-                >
-                  <EyeOff className="mr-2 h-4 w-4" />
-                  {t('deleteConfirmation.archiveProject', 'Archive project')}
-                </Button>
-                <Button
-                  variant="destructive"
-                  className="w-full justify-start bg-red-600 text-white hover:bg-red-700"
-                  onClick={() => onConfirmDeleteProject(true)}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  {t('deleteConfirmation.deleteAllData')}
-                </Button>
+                {showArchiveProjectAction && (
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => onConfirmDeleteProject(false)}
+                  >
+                    <EyeOff className="mr-2 h-4 w-4" />
+                    {t('deleteConfirmation.archiveProject', 'Archive project')}
+                  </Button>
+                )}
+                {showDeleteProjectAction && (
+                  <Button
+                    variant="destructive"
+                    className="w-full justify-start bg-red-600 text-white hover:bg-red-700"
+                    onClick={() => onConfirmDeleteProject(true)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    {t('deleteConfirmation.deleteAllData')}
+                  </Button>
+                )}
                 <Button variant="ghost" className="w-full" onClick={onCancelDeleteProject}>
                   {t('actions.cancel')}
                 </Button>
@@ -207,15 +206,6 @@ export default function SidebarModals({
           </div>,
           document.body,
         )}
-
-      <VersionUpgradeModal
-        isOpen={showVersionModal}
-        onClose={onCloseVersionModal}
-        releaseInfo={releaseInfo}
-        currentVersion={currentVersion}
-        latestVersion={latestVersion}
-        installMode={installMode}
-      />
     </>
   );
 }

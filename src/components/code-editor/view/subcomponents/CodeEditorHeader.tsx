@@ -1,4 +1,4 @@
-import { Code2, Download, Eye, Maximize2, Minimize2, Save, Settings as SettingsIcon, X } from 'lucide-react';
+import { Code2, Download, Eye, Globe, Maximize2, Minimize2, Save, Settings as SettingsIcon, X } from 'lucide-react';
 import type { CodeEditorFile } from '../../types/types';
 
 type CodeEditorHeaderProps = {
@@ -6,10 +6,13 @@ type CodeEditorHeaderProps = {
   isSidebar: boolean;
   isFullscreen: boolean;
   isMarkdownFile: boolean;
+  isHtmlFile: boolean;
   markdownPreview: boolean;
+  htmlPreview: boolean;
   saving: boolean;
   saveSuccess: boolean;
   onToggleMarkdownPreview: () => void;
+  onToggleHtmlPreview: () => void;
   onOpenSettings: () => void;
   onDownload: () => void;
   onSave: () => void;
@@ -27,6 +30,8 @@ type CodeEditorHeaderProps = {
     fullscreen: string;
     exitFullscreen: string;
     close: string;
+    previewHtml: string;
+    editHtml: string;
   };
 };
 
@@ -35,10 +40,13 @@ export default function CodeEditorHeader({
   isSidebar,
   isFullscreen,
   isMarkdownFile,
+  isHtmlFile,
   markdownPreview,
+  htmlPreview,
   saving,
   saveSuccess,
   onToggleMarkdownPreview,
+  onToggleHtmlPreview,
   onOpenSettings,
   onDownload,
   onSave,
@@ -79,6 +87,21 @@ export default function CodeEditorHeader({
             title={markdownPreview ? labels.editMarkdown : labels.previewMarkdown}
           >
             {markdownPreview ? <Code2 className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        )}
+
+        {isHtmlFile && (
+          <button
+            type="button"
+            onClick={onToggleHtmlPreview}
+            className={`flex items-center justify-center rounded-md p-1.5 transition-colors ${
+              htmlPreview
+                ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white'
+            }`}
+            title={htmlPreview ? labels.editHtml : labels.previewHtml}
+          >
+            {htmlPreview ? <Code2 className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
           </button>
         )}
 

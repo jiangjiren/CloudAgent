@@ -54,7 +54,7 @@ export interface NormalizedMessage {
   isLocalCommand?: boolean;
   isLocalCommandStdout?: boolean;
   isCompactSummary?: boolean;
-  images?: string[];
+  images?: Array<string | { data: string; name?: string; [key: string]: unknown }>;
   toolName?: string;
   toolInput?: unknown;
   toolId?: string;
@@ -79,6 +79,9 @@ export interface NormalizedMessage {
   sequence?: number;
   rowid?: number;
 }
+
+type MessageImages = NonNullable<NormalizedMessage['images']>;
+type UserImageCache = Map<string, MessageImages>;
 
 // ─── Per-session slot ────────────────────────────────────────────────────────
 
@@ -128,6 +131,50 @@ function userTextFingerprint(m: NormalizedMessage): string | null {
   return t.length > 0 ? t : null;
 }
 
+function hasMessageImages(m: NormalizedMessage): boolean {
+  return Array.isArray(m.images) && m.images.length > 0;
+}
+
+function rememberUserImages(cache: UserImageCache, messages: NormalizedMessage[]): void {
+  for (const message of messages) {
+    if (!hasMessageImages(message)) continue;
+    const fingerprint = userTextFingerprint(message);
+    if (fingerprint) {
+      cache.set(fingerprint, message.images as MessageImages);
+    }
+  }
+}
+
+function mergeCachedUserImages(
+  server: NormalizedMessage[],
+  cache: UserImageCache | undefined,
+): NormalizedMessage[] {
+  if (server.length === 0 || !cache || cache.size === 0) return server;
+
+  let changed = false;
+  const merged = server.map((message) => {
+    if (hasMessageImages(message)) return message;
+    const fingerprint = userTextFingerprint(message);
+    const images = fingerprint ? cache.get(fingerprint) : null;
+    if (!images) return message;
+    changed = true;
+    return { ...message, images };
+  });
+
+  return changed ? merged : server;
+}
+
+function mergeRealtimeUserImages(
+  server: NormalizedMessage[],
+  realtime: NormalizedMessage[],
+): NormalizedMessage[] {
+  if (server.length === 0 || realtime.length === 0) return server;
+
+  const cache: UserImageCache = new Map();
+  rememberUserImages(cache, realtime);
+  return mergeCachedUserImages(server, cache);
+}
+
 /**
  * After `finalizeStreaming`, the client holds a synthetic assistant `text` row
  * while the sessions API soon returns the same reply with a different id.
@@ -168,9 +215,11 @@ function dedupeAdjacentAssistantEchoes(merged: NormalizedMessage[]): NormalizedM
 function computeMerged(server: NormalizedMessage[], realtime: NormalizedMessage[]): NormalizedMessage[] {
   if (realtime.length === 0) return server;
   if (server.length === 0) return dedupeAdjacentAssistantEchoes(realtime);
-  const serverIds = new Set(server.map(m => m.id));
+
+  const serverWithRealtimeImages = mergeRealtimeUserImages(server, realtime);
+  const serverIds = new Set(serverWithRealtimeImages.map(m => m.id));
   const serverUserTexts = new Set(
-    server.map(userTextFingerprint).filter((t): t is string => t !== null),
+    serverWithRealtimeImages.map(userTextFingerprint).filter((t): t is string => t !== null),
   );
   const extra = realtime.filter((m) => {
     if (serverIds.has(m.id)) return false;
@@ -182,8 +231,8 @@ function computeMerged(server: NormalizedMessage[], realtime: NormalizedMessage[
     }
     return true;
   });
-  if (extra.length === 0) return server;
-  return dedupeAdjacentAssistantEchoes([...server, ...extra]);
+  if (extra.length === 0) return serverWithRealtimeImages;
+  return dedupeAdjacentAssistantEchoes([...serverWithRealtimeImages, ...extra]);
 }
 
 function compareMessagesByTimestamp(left: NormalizedMessage, right: NormalizedMessage): number {
@@ -265,6 +314,7 @@ const MAX_REALTIME_MESSAGES = 500;
 export function useSessionStore() {
   const storeRef = useRef(new Map<string, SessionSlot>());
   const sessionAliasesRef = useRef(new Map<string, string>());
+  const userImagesBySessionRef = useRef(new Map<string, UserImageCache>());
   const activeSessionIdRef = useRef<string | null>(null);
   // Bump to force re-render — only when the active session's data changes
   const [, setTick] = useState(0);
@@ -318,6 +368,15 @@ export function useSessionStore() {
     return storeRef.current.has(resolvedSessionId);
   }, [resolveSessionId]);
 
+  const getUserImageCache = useCallback((sessionId: string): UserImageCache => {
+    const resolvedSessionId = resolveSessionId(sessionId) ?? sessionId;
+    const caches = userImagesBySessionRef.current;
+    if (!caches.has(resolvedSessionId)) {
+      caches.set(resolvedSessionId, new Map());
+    }
+    return caches.get(resolvedSessionId)!;
+  }, [resolveSessionId]);
+
   /**
    * Fetch messages from the provider sessions endpoint and populate serverMessages.
    *
@@ -355,11 +414,14 @@ export function useSessionStore() {
 
       const data = await response.json();
       const messages: NormalizedMessage[] = data.messages || [];
+      const userImageCache = getUserImageCache(resolvedSessionId);
 
-      slot.serverMessages = messages;
+      slot.serverMessages = mergeCachedUserImages(messages, userImageCache);
       slot.total = data.total ?? messages.length;
       slot.hasMore = Boolean(data.hasMore);
-      slot.offset = (opts.offset ?? 0) + messages.length;
+      slot.offset = typeof data.nextOffset === 'number'
+        ? data.nextOffset
+        : (opts.offset ?? 0) + messages.length;
       slot.fetchedAt = Date.now();
       slot.status = 'idle';
       recomputeMergedIfNeeded(slot);
@@ -375,7 +437,7 @@ export function useSessionStore() {
       notify(resolvedSessionId);
       return slot;
     }
-  }, [getSlot, notify, resolveSessionId]);
+  }, [getSlot, getUserImageCache, notify, resolveSessionId]);
 
   /**
    * Load older (paginated) messages and prepend to serverMessages.
@@ -408,9 +470,12 @@ export function useSessionStore() {
       const olderMessages: NormalizedMessage[] = data.messages || [];
 
       // Prepend older messages (they're earlier in the conversation)
-      slot.serverMessages = [...olderMessages, ...slot.serverMessages];
+      const userImageCache = getUserImageCache(resolvedSessionId);
+      slot.serverMessages = mergeCachedUserImages([...olderMessages, ...slot.serverMessages], userImageCache);
       slot.hasMore = Boolean(data.hasMore);
-      slot.offset = slot.offset + olderMessages.length;
+      slot.offset = typeof data.nextOffset === 'number'
+        ? data.nextOffset
+        : slot.offset + olderMessages.length;
       recomputeMergedIfNeeded(slot);
       notify(resolvedSessionId);
       return slot;
@@ -418,7 +483,7 @@ export function useSessionStore() {
       console.error(`[SessionStore] fetchMore failed for ${resolvedSessionId}:`, error);
       return slot;
     }
-  }, [getSlot, notify, resolveSessionId]);
+  }, [getSlot, getUserImageCache, notify, resolveSessionId]);
 
   /**
    * Append a realtime (WebSocket) message to the correct session slot.
@@ -431,6 +496,7 @@ export function useSessionStore() {
       msg.sessionId === resolvedSessionId
         ? msg
         : { ...msg, sessionId: resolvedSessionId };
+    rememberUserImages(getUserImageCache(resolvedSessionId), [normalizedMessage]);
     let updated = [...slot.realtimeMessages, normalizedMessage];
     if (updated.length > MAX_REALTIME_MESSAGES) {
       updated = updated.slice(-MAX_REALTIME_MESSAGES);
@@ -438,7 +504,7 @@ export function useSessionStore() {
     slot.realtimeMessages = updated;
     recomputeMergedIfNeeded(slot);
     notify(resolvedSessionId);
-  }, [getSlot, notify, resolveSessionId]);
+  }, [getSlot, getUserImageCache, notify, resolveSessionId]);
 
   /**
    * Append multiple realtime messages at once (batch).
@@ -452,6 +518,7 @@ export function useSessionStore() {
         ? msg
         : { ...msg, sessionId: resolvedSessionId },
     );
+    rememberUserImages(getUserImageCache(resolvedSessionId), normalizedMessages);
     let updated = [...slot.realtimeMessages, ...normalizedMessages];
     if (updated.length > MAX_REALTIME_MESSAGES) {
       updated = updated.slice(-MAX_REALTIME_MESSAGES);
@@ -459,7 +526,7 @@ export function useSessionStore() {
     slot.realtimeMessages = updated;
     recomputeMergedIfNeeded(slot);
     notify(resolvedSessionId);
-  }, [getSlot, notify, resolveSessionId]);
+  }, [getSlot, getUserImageCache, notify, resolveSessionId]);
 
   /**
    * Re-fetch serverMessages from the provider sessions endpoint.
@@ -484,7 +551,13 @@ export function useSessionStore() {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
 
-      slot.serverMessages = data.messages || [];
+      const messages: NormalizedMessage[] = data.messages || [];
+      const userImageCache = getUserImageCache(resolvedSessionId);
+      rememberUserImages(userImageCache, slot.realtimeMessages);
+      slot.serverMessages = mergeCachedUserImages(
+        mergeRealtimeUserImages(messages, slot.realtimeMessages),
+        userImageCache,
+      );
       slot.total = data.total ?? slot.serverMessages.length;
       slot.hasMore = Boolean(data.hasMore);
       slot.fetchedAt = Date.now();
@@ -495,7 +568,7 @@ export function useSessionStore() {
     } catch (error) {
       console.error(`[SessionStore] refresh failed for ${resolvedSessionId}:`, error);
     }
-  }, [getSlot, notify, resolveSessionId]);
+  }, [getSlot, getUserImageCache, notify, resolveSessionId]);
 
   /**
    * Update session status.
@@ -575,11 +648,14 @@ export function useSessionStore() {
     const resolvedSessionId = resolveSessionId(sessionId) ?? sessionId;
     const slot = storeRef.current.get(resolvedSessionId);
     if (slot) {
+      const userImageCache = getUserImageCache(resolvedSessionId);
+      rememberUserImages(userImageCache, slot.realtimeMessages);
+      slot.serverMessages = mergeCachedUserImages(slot.serverMessages, userImageCache);
       slot.realtimeMessages = [];
       recomputeMergedIfNeeded(slot);
       notify(resolvedSessionId);
     }
-  }, [notify, resolveSessionId]);
+  }, [getUserImageCache, notify, resolveSessionId]);
 
   /**
    * Get merged messages for a session (for rendering).
@@ -607,8 +683,11 @@ export function useSessionStore() {
     }
 
     const store = storeRef.current;
+    const userImageCaches = userImagesBySessionRef.current;
     const sourceSlot = store.get(resolvedFromSessionId);
     const targetSlot = store.get(resolvedToSessionId) ?? createEmptySlot();
+    const sourceImageCache = userImageCaches.get(resolvedFromSessionId);
+    const targetImageCache = userImageCaches.get(resolvedToSessionId) ?? new Map();
 
     if (sourceSlot) {
       const migratedServerMessages = sourceSlot.serverMessages.map((msg) =>
@@ -623,6 +702,14 @@ export function useSessionStore() {
       if (targetSlot.realtimeMessages.length > MAX_REALTIME_MESSAGES) {
         targetSlot.realtimeMessages = targetSlot.realtimeMessages.slice(-MAX_REALTIME_MESSAGES);
       }
+      if (sourceImageCache) {
+        for (const [fingerprint, images] of sourceImageCache.entries()) {
+          targetImageCache.set(fingerprint, images);
+        }
+      }
+      rememberUserImages(targetImageCache, targetSlot.serverMessages);
+      rememberUserImages(targetImageCache, targetSlot.realtimeMessages);
+      targetSlot.serverMessages = mergeCachedUserImages(targetSlot.serverMessages, targetImageCache);
       targetSlot.status =
         sourceSlot.status === 'error'
           ? 'error'
@@ -646,6 +733,11 @@ export function useSessionStore() {
       store.set(resolvedToSessionId, targetSlot);
       store.delete(resolvedFromSessionId);
     }
+
+    if (targetImageCache.size > 0) {
+      userImageCaches.set(resolvedToSessionId, targetImageCache);
+    }
+    userImageCaches.delete(resolvedFromSessionId);
 
     sessionAliasesRef.current.set(resolvedFromSessionId, resolvedToSessionId);
     sessionAliasesRef.current.set(fromSessionId, resolvedToSessionId);

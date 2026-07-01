@@ -1,7 +1,7 @@
 import { EditorView } from '@codemirror/view';
 import { unifiedMergeView } from '@codemirror/merge';
 import type { Extension } from '@codemirror/state';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePaletteOps } from '../../../contexts/PaletteOpsContext';
 import { useCodeEditorDocument } from '../hooks/useCodeEditorDocument';
@@ -27,6 +27,16 @@ type CodeEditorProps = {
   onPopOut?: (() => void) | null;
 };
 
+const isHtmlFileName = (fileName: string) => {
+  const extension = fileName.split('.').pop()?.toLowerCase();
+  return extension === 'html' || extension === 'htm';
+};
+
+const isMarkdownFileName = (fileName: string) => {
+  const extension = fileName.split('.').pop()?.toLowerCase();
+  return extension === 'md' || extension === 'markdown';
+};
+
 export default function CodeEditor({
   file,
   onClose,
@@ -40,7 +50,8 @@ export default function CodeEditor({
   const paletteOps = usePaletteOps();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showDiff, setShowDiff] = useState(Boolean(file.diffInfo));
-  const [markdownPreview, setMarkdownPreview] = useState(false);
+  const [markdownPreview, setMarkdownPreview] = useState(() => isMarkdownFileName(file.name));
+  const [htmlPreview, setHtmlPreview] = useState(() => isHtmlFileName(file.name));
 
   const {
     isDarkMode,
@@ -66,9 +77,17 @@ export default function CodeEditor({
   });
 
   const isMarkdownFile = useMemo(() => {
-    const extension = file.name.split('.').pop()?.toLowerCase();
-    return extension === 'md' || extension === 'markdown';
+    return isMarkdownFileName(file.name);
   }, [file.name]);
+
+  const isHtmlFile = useMemo(() => {
+    return isHtmlFileName(file.name);
+  }, [file.name]);
+
+  useEffect(() => {
+    setMarkdownPreview(isMarkdownFile);
+    setHtmlPreview(isHtmlFile);
+  }, [file.name, file.path, isHtmlFile, isMarkdownFile]);
 
   const minimapExtension = useMemo(
     () => (
@@ -197,10 +216,19 @@ export default function CodeEditor({
             isSidebar={isSidebar}
             isFullscreen={isFullscreen}
             isMarkdownFile={isMarkdownFile}
+            isHtmlFile={isHtmlFile}
             markdownPreview={markdownPreview}
+            htmlPreview={htmlPreview}
             saving={saving}
             saveSuccess={saveSuccess}
-            onToggleMarkdownPreview={() => setMarkdownPreview((previous) => !previous)}
+            onToggleMarkdownPreview={() => {
+              setHtmlPreview(false);
+              setMarkdownPreview((previous) => !previous);
+            }}
+            onToggleHtmlPreview={() => {
+              setMarkdownPreview(false);
+              setHtmlPreview((previous) => !previous);
+            }}
             onOpenSettings={() => paletteOps.openSettings('appearance')}
             onDownload={handleDownload}
             onSave={handleSave}
@@ -218,6 +246,8 @@ export default function CodeEditor({
               fullscreen: t('actions.fullscreen'),
               exitFullscreen: t('actions.exitFullscreen'),
               close: t('actions.close'),
+              previewHtml: t('actions.previewHtml'),
+              editHtml: t('actions.editHtml'),
             }}
           />
 
@@ -233,6 +263,11 @@ export default function CodeEditor({
               onChange={setContent}
               markdownPreview={markdownPreview}
               isMarkdownFile={isMarkdownFile}
+              htmlPreview={htmlPreview}
+              isHtmlFile={isHtmlFile}
+              htmlPreviewTitle={`${file.name} preview`}
+              htmlPreviewProjectId={file.projectId}
+              htmlPreviewSourcePath={file.path}
               isDarkMode={isDarkMode}
               fontSize={fontSize}
               showLineNumbers={showLineNumbers}

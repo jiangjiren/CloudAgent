@@ -22,7 +22,9 @@
     "fullscreen": "Schermo intero",
     "close": "Chiudi",
     "previewMarkdown": "Anteprima markdown",
-    "editMarkdown": "Modifica markdown"
+    "editMarkdown": "Modifica markdown",
+    "previewHtml": "Anteprima HTML",
+    "editHtml": "Modifica HTML"
   },
   "footer": {
     "lines": "Righe:",

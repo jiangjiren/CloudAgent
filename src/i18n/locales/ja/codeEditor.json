@@ -20,7 +20,11 @@
     "saved": "保存しました！",
     "exitFullscreen": "全画面を終了",
     "fullscreen": "全画面",
-    "close": "閉じる"
+    "close": "閉じる",
+    "previewMarkdown": "Markdownをプレビュー",
+    "editMarkdown": "Markdownを編集",
+    "previewHtml": "HTMLをプレビュー",
+    "editHtml": "HTMLを編集"
   },
   "footer": {
     "lines": "行数:",

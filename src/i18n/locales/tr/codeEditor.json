@@ -22,7 +22,9 @@
     "fullscreen": "Tam ekran",
     "close": "Kapat",
     "previewMarkdown": "Markdown önizle",
-    "editMarkdown": "Markdown düzenle"
+    "editMarkdown": "Markdown düzenle",
+    "previewHtml": "HTML önizle",
+    "editHtml": "HTML düzenle"
   },
   "footer": {
     "lines": "Satır:",

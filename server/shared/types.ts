@@ -254,6 +254,7 @@ export type FetchHistoryResult = {
   total: number;
   hasMore: boolean;
   offset: number;
+  nextOffset?: number;
   limit: number | null;
   tokenUsage?: unknown;
 };

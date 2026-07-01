@@ -32,7 +32,8 @@
     "loadingSessions": "Loading sessions...",
     "unnamed": "Unnamed",
     "loading": "Loading...",
-    "showMore": "Show more sessions"
+    "showMore": "Show more sessions",
+    "expandAll": "Expand all"
   },
   "tooltips": {
     "viewEnvironments": "View Environments",
@@ -45,6 +46,7 @@
     "removeFromFavorites": "Remove from favorites",
     "editSessionName": "Manually edit session name",
     "deleteSession": "Delete this session permanently",
+    "projectActions": "Project actions",
     "activeSessionIndicator": "Recently active session (last 10 minutes)",
     "save": "Save",
     "cancel": "Cancel",
@@ -112,9 +114,14 @@
     "updateAvailable": "Update available"
   },
   "search": {
+    "placeholder": "Search projects, conversations, archives...",
+    "scopeAll": "All",
+    "scopeArchive": "Archive",
     "modeProjects": "Projects",
     "modeConversations": "Conversations",
     "conversationsPlaceholder": "Search in conversations...",
+    "keepTypingTitle": "Keep typing",
+    "keepTypingDescription": "Enter at least 2 characters to search conversation content.",
     "searching": "Searching...",
     "noResults": "No results found",
     "tryDifferentQuery": "Try a different search query",
@@ -125,13 +132,18 @@
   },
   "deleteConfirmation": {
     "deleteProject": "Remove Project",
+    "deleteProjectPermanently": "Delete Project",
     "deleteSession": "Delete Session",
     "confirmDelete": "What would you like to do with",
     "sessionCount_one": "This project contains {{count}} conversation.",
     "sessionCount_other": "This project contains {{count}} conversations.",
     "removeFromSidebar": "Remove from sidebar only",
+    "archiveProject": "Archive project",
     "deleteAllData": "Delete all data permanently",
     "allConversationsDeleted": "The project will be removed from the sidebar. Your files, memories, and session data will be preserved.",
     "cannotUndo": "You can re-add the project later."
+  },
+  "archived": {
+    "title": "Archive"
   }
 }

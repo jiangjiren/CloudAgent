@@ -35,6 +35,7 @@ export type SidebarProjectListProps = {
   onStartEditingProject: (project: Project) => void;
   onCancelEditingProject: () => void;
   onSaveProjectName: (projectName: string) => void;
+  onArchiveProject: (project: Project) => void;
   onDeleteProject: (project: Project) => void;
   onSessionSelect: (session: SessionWithProvider, projectName: string) => void;
   onDeleteSession: (
@@ -79,6 +80,7 @@ export default function SidebarProjectList({
   onStartEditingProject,
   onCancelEditingProject,
   onSaveProjectName,
+  onArchiveProject,
   onDeleteProject,
   onSessionSelect,
   onDeleteSession,
@@ -142,6 +144,7 @@ export default function SidebarProjectList({
               onStartEditingProject={onStartEditingProject}
               onCancelEditingProject={onCancelEditingProject}
               onSaveProjectName={onSaveProjectName}
+              onArchiveProject={onArchiveProject}
               onDeleteProject={onDeleteProject}
               onSessionSelect={onSessionSelect}
               onDeleteSession={onDeleteSession}

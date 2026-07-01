@@ -176,7 +176,7 @@ export function handleShellConnection(
       }
 
       if (data.type === 'init') {
-        const projectPath = readString(data.projectPath, process.cwd());
+        const projectPath = readString(data.projectPath) || os.homedir();
         const sessionId = readString(data.sessionId) || null;
         const hasSession = readBoolean(data.hasSession);
         const provider = readString(data.provider, 'claude');
@@ -250,13 +250,23 @@ export function handleShellConnection(
             throw new Error('Not a directory');
           }
         } catch {
-          ws.send(JSON.stringify({ type: 'error', message: 'Invalid project path' }));
+          ws.send(
+            JSON.stringify({
+              type: 'output',
+              data: `\r\n\x1b[31mError: Invalid project path: ${projectPath}\x1b[0m\r\n`,
+            })
+          );
           return;
         }
 
         const safeSessionIdPattern = /^[a-zA-Z0-9_.\-:]+$/;
         if (sessionId && !safeSessionIdPattern.test(sessionId)) {
-          ws.send(JSON.stringify({ type: 'error', message: 'Invalid session ID' }));
+          ws.send(
+            JSON.stringify({
+              type: 'output',
+              data: '\r\n\x1b[31mError: Invalid session ID\x1b[0m\r\n',
+            })
+          );
           return;
         }
 
@@ -274,6 +284,10 @@ export function handleShellConnection(
           cwd: resolvedProjectPath,
           env: {
             ...process.env,
+            PATH: [
+              path.join(os.homedir(), '.local', 'bin'),
+              process.env.PATH,
+            ].filter(Boolean).join(path.delimiter),
             TERM: 'xterm-256color',
             COLORTERM: 'truecolor',
             FORCE_COLOR: '3',

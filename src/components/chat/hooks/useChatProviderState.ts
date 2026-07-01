@@ -17,6 +17,19 @@ const FALLBACK_DEFAULT_MODEL: Record<LLMProvider, string> = {
   opencode: 'anthropic/claude-sonnet-4-5',
 };
 
+const LEGACY_CLAUDE_MODEL_ALIASES: Record<string, string> = {
+  sonnet: 'claude-sonnet-5',
+  'sonnet[1m]': 'claude-sonnet-5[1m]',
+};
+
+const normalizeProviderModelSelection = (provider: LLMProvider, model: string | null): string | null => {
+  if (provider !== 'claude' || !model) {
+    return model;
+  }
+
+  return LEGACY_CLAUDE_MODEL_ALIASES[model] || model;
+};
+
 const getPermissionModesForProvider = (provider: LLMProvider): PermissionMode[] => {
   if (provider === 'codex') {
     return ['default', 'acceptEdits', 'bypassPermissions'];
@@ -55,7 +68,7 @@ type ChangeActiveModelApiResponse = {
 };
 
 export function useChatProviderState({ selectedSession, selectedProject }: UseChatProviderStateArgs) {
-  const [permissionMode, setPermissionMode] = useState<PermissionMode>('default');
+  const [permissionMode, setPermissionMode] = useState<PermissionMode>('bypassPermissions');
   const [pendingPermissionRequests, setPendingPermissionRequests] = useState<PendingPermissionRequest[]>([]);
   const [provider, setProvider] = useState<LLMProvider>(() => {
     return (localStorage.getItem('selected-provider') as LLMProvider) || 'claude';
@@ -64,7 +77,8 @@ export function useChatProviderState({ selectedSession, selectedProject }: UseCh
     return localStorage.getItem('cursor-model') || FALLBACK_DEFAULT_MODEL.cursor;
   });
   const [claudeModel, setClaudeModel] = useState<string>(() => {
-    return localStorage.getItem('claude-model') || FALLBACK_DEFAULT_MODEL.claude;
+    return normalizeProviderModelSelection('claude', localStorage.getItem('claude-model'))
+      || FALLBACK_DEFAULT_MODEL.claude;
   });
   const [codexModel, setCodexModel] = useState<string>(() => {
     return localStorage.getItem('codex-model') || FALLBACK_DEFAULT_MODEL.codex;
@@ -186,12 +200,14 @@ export function useChatProviderState({ selectedSession, selectedProject }: UseCh
     current: string,
     def: ProviderModelsDefinition,
   ): string => {
-    const stored = localStorage.getItem(storageKey);
+    const storageProvider = storageKey.replace(/-model$/, '') as LLMProvider;
+    const stored = normalizeProviderModelSelection(storageProvider, localStorage.getItem(storageKey));
+    const normalizedCurrent = normalizeProviderModelSelection(storageProvider, current);
     if (stored && def.OPTIONS.some((o) => o.value === stored)) {
       return stored;
     }
-    if (current && def.OPTIONS.some((o) => o.value === current)) {
-      return current;
+    if (normalizedCurrent && def.OPTIONS.some((o) => o.value === normalizedCurrent)) {
+      return normalizedCurrent;
     }
     return def.DEFAULT;
   };
@@ -268,7 +284,7 @@ export function useChatProviderState({ selectedSession, selectedProject }: UseCh
 
     const savedMode = localStorage.getItem(`permissionMode-${selectedSession.id}`) as PermissionMode | null;
     const validModes = getPermissionModesForProvider(provider);
-    setPermissionMode(savedMode && validModes.includes(savedMode) ? savedMode : 'default');
+    setPermissionMode(savedMode && validModes.includes(savedMode) ? savedMode : 'bypassPermissions');
   }, [selectedSession?.id, provider]);
 
   useEffect(() => {

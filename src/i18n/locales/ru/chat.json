@@ -135,6 +135,9 @@
     },
     "clickToChangeMode": "Нажмите для смены режима разрешений (или нажмите Tab в поле ввода)",
     "showAllCommands": "Показать все команды",
+    "moreActions": "Еще",
+    "tokenUsage": "Использование токенов",
+    "tokensUsed": "токенов использовано",
     "clearInput": "Очистить ввод",
     "scrollToBottom": "Прокрутить вниз"
   },

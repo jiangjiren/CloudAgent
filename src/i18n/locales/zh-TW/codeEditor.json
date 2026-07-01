@@ -20,7 +20,11 @@
     "saved": "已儲存！",
     "exitFullscreen": "離開全螢幕",
     "fullscreen": "全螢幕",
-    "close": "關閉"
+    "close": "關閉",
+    "previewMarkdown": "預覽 Markdown",
+    "editMarkdown": "編輯 Markdown",
+    "previewHtml": "預覽 HTML",
+    "editHtml": "編輯 HTML"
   },
   "footer": {
     "lines": "行數：",

@@ -41,6 +41,35 @@ export interface ToolDisplayConfig {
   };
 }
 
+function readToolInput(input: any): Record<string, any> {
+  if (!input) return {};
+  if (typeof input === 'object') return input;
+  if (typeof input !== 'string') return {};
+
+  try {
+    const parsed = JSON.parse(input);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function firstStringValue(input: any, keys: string[], fallback = ''): string {
+  const record = readToolInput(input);
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === 'string' && value.length > 0) {
+      return value;
+    }
+  }
+
+  return fallback;
+}
+
+function compactOneLine(value: string, maxLength = 160): string {
+  return value.length > maxLength ? `${value.slice(0, maxLength - 1)}...` : value;
+}
+
 export const TOOL_CONFIGS: Record<string, ToolDisplayConfig> = {
   // ============================================================================
   // COMMAND TOOLS
@@ -66,6 +95,63 @@ export const TOOL_CONFIGS: Record<string, ToolDisplayConfig> = {
     result: {
       hideOnSuccess: true,
       type: 'special'
+    }
+  },
+
+  exec_command: {
+    input: {
+      type: 'one-line',
+      icon: 'terminal',
+      getValue: (input) => firstStringValue(input, ['cmd', 'command'], 'shell command'),
+      getSecondary: (input) => firstStringValue(input, ['workdir']) || undefined,
+      action: 'copy',
+      style: 'terminal',
+      wrapText: true,
+      colorScheme: {
+        primary: 'text-green-400 font-mono',
+        secondary: 'text-gray-400',
+        background: '',
+        border: 'border-green-500 dark:border-green-400',
+        icon: 'text-green-500 dark:text-green-400'
+      }
+    },
+    result: {
+      hideOnSuccess: true,
+      type: 'special'
+    }
+  },
+
+  write_stdin: {
+    input: {
+      type: 'one-line',
+      label: 'stdin',
+      getValue: (input) => compactOneLine(firstStringValue(input, ['chars'], 'input')),
+      colorScheme: {
+        primary: 'text-gray-700 dark:text-gray-300',
+        background: '',
+        border: 'border-gray-300 dark:border-gray-600',
+        icon: 'text-gray-500 dark:text-gray-400'
+      }
+    },
+    result: {
+      hidden: true
+    }
+  },
+
+  view_image: {
+    input: {
+      type: 'one-line',
+      label: 'View image',
+      getValue: (input) => firstStringValue(input, ['path', 'file_path', 'image_path'], 'image'),
+      colorScheme: {
+        primary: 'text-gray-700 dark:text-gray-300',
+        background: '',
+        border: 'border-gray-300 dark:border-gray-600',
+        icon: 'text-gray-500 dark:text-gray-400'
+      }
+    },
+    result: {
+      hidden: true
     }
   },
 

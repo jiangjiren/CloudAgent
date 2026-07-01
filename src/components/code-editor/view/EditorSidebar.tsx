@@ -8,6 +8,7 @@ type EditorSidebarProps = {
   isMobile: boolean;
   editorExpanded: boolean;
   editorWidth: number;
+  isResizing: boolean;
   hasManualWidth: boolean;
   resizeHandleRef: MutableRefObject<HTMLDivElement | null>;
   onResizeStart: (event: MouseEvent<HTMLDivElement>) => void;
@@ -27,6 +28,7 @@ export default function EditorSidebar({
   isMobile,
   editorExpanded,
   editorWidth,
+  isResizing,
   hasManualWidth,
   resizeHandleRef,
   onResizeStart,
@@ -103,19 +105,24 @@ export default function EditorSidebar({
 
   return (
     <div ref={containerRef} className={`flex h-full min-w-0 ${editorExpanded ? 'flex-1' : ''}`}>
+      {isResizing && (
+        <div className="fixed inset-0 z-[10000] cursor-col-resize bg-transparent" />
+      )}
+
       {!editorExpanded && (
         <div
           ref={resizeHandleRef}
           onMouseDown={onResizeStart}
-          className="group relative w-1 flex-shrink-0 cursor-col-resize bg-gray-200 transition-colors hover:bg-blue-500 dark:bg-gray-700 dark:hover:bg-blue-600"
+          className="group relative z-10 w-2 flex-shrink-0 cursor-col-resize bg-transparent"
           title="Drag to resize"
         >
+          <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-gray-200 transition-colors group-hover:bg-blue-500 dark:bg-gray-700 dark:group-hover:bg-blue-600" />
           <div className="absolute inset-y-0 left-1/2 w-1 -translate-x-1/2 bg-blue-500 opacity-0 transition-opacity group-hover:opacity-100 dark:bg-blue-600" />
         </div>
       )}
 
       <div
-        className={`h-full overflow-hidden border-l border-gray-200 dark:border-gray-700 ${useFlexLayout ? 'min-w-0 flex-1' : `min-w-[ flex-shrink-0${MIN_EDITOR_WIDTH}px]`}`}
+        className={`h-full overflow-hidden border-l border-gray-200 dark:border-gray-700 ${useFlexLayout ? 'min-w-0 flex-1' : 'flex-shrink-0'}`}
         style={useFlexLayout ? undefined : { width: `${effectiveWidth}px`, minWidth: `${MIN_EDITOR_WIDTH}px` }}
       >
         <CodeEditor

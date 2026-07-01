@@ -128,8 +128,7 @@ export function useSidebarController({
   const [deletingProjects, setDeletingProjects] = useState<Set<string>>(new Set());
   const [deleteConfirmation, setDeleteConfirmation] = useState<DeleteProjectConfirmation | null>(null);
   const [sessionDeleteConfirmation, setSessionDeleteConfirmation] = useState<SessionDeleteConfirmation | null>(null);
-  const [showVersionModal, setShowVersionModal] = useState(false);
-  const [searchMode, setSearchMode] = useState<SidebarSearchMode>('projects');
+  const [searchMode, setSearchMode] = useState<SidebarSearchMode>('all');
   const [conversationResults, setConversationResults] = useState<ConversationSearchResults | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchProgress, setSearchProgress] = useState<SearchProgress | null>(null);
@@ -334,6 +333,12 @@ export function useSidebarController({
     };
   }, [searchFilter]);
 
+  useEffect(() => {
+    if (searchFilter.trim().length === 0) {
+      setSearchMode('all');
+    }
+  }, [searchFilter]);
+
   // Debounced conversation search with SSE streaming
   useEffect(() => {
     if (eventSourceRef.current) {
@@ -342,7 +347,8 @@ export function useSidebarController({
     }
 
     const query = debouncedSearchQuery;
-    if (searchMode !== 'conversations' || query.length < 2) {
+    const shouldSearchConversations = (searchMode === 'all' || searchMode === 'conversations') && query.length >= 2;
+    if (!shouldSearchConversations) {
       searchSeqRef.current += 1;
       setConversationResults(null);
       setSearchProgress(null);
@@ -722,10 +728,11 @@ export function useSidebarController({
   }, [fetchArchivedSessions, onSessionDelete, sessionDeleteConfirmation, t]);
 
   const requestProjectDelete = useCallback(
-    (project: Project) => {
+    (project: Project, intent: DeleteProjectConfirmation['intent'] = 'choose') => {
       setDeleteConfirmation({
         project,
         sessionCount: getProjectSessions(project).length,
+        intent,
       });
     },
     [getProjectSessions],
@@ -912,7 +919,6 @@ export function useSidebarController({
     loadingMoreProjects,
     deleteConfirmation,
     sessionDeleteConfirmation,
-    showVersionModal,
     filteredProjects,
     archivedProjects: filteredArchivedProjects,
     archivedSessions: filteredArchivedSessions,
@@ -961,6 +967,5 @@ export function useSidebarController({
     setSearchFilter,
     setDeleteConfirmation,
     setSessionDeleteConfirmation,
-    setShowVersionModal,
   };
 }

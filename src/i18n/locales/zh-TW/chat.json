@@ -117,6 +117,9 @@
     },
     "clickToChangeMode": "點擊變更權限模式（或在輸入框中按 Tab）",
     "showAllCommands": "顯示所有指令",
+    "moreActions": "更多",
+    "tokenUsage": "Token 使用量",
+    "tokensUsed": "tokens 已使用",
     "clearInput": "清空輸入",
     "scrollToBottom": "捲動到底部"
   },

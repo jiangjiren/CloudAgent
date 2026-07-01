@@ -32,7 +32,8 @@
     "loadingSessions": "加载会话中...",
     "unnamed": "未命名",
     "loading": "加载中...",
-    "showMore": "显示更多会话"
+    "showMore": "显示更多会话",
+    "expandAll": "展开全部"
   },
   "tooltips": {
     "viewEnvironments": "查看环境",
@@ -45,6 +46,7 @@
     "removeFromFavorites": "从收藏移除",
     "editSessionName": "手动编辑会话名称",
     "deleteSession": "永久删除此会话",
+    "projectActions": "项目操作",
     "activeSessionIndicator": "最近活跃的会话（最近 10 分钟）",
     "save": "保存",
     "cancel": "取消",
@@ -112,9 +114,14 @@
     "updateAvailable": "有可用更新"
   },
   "search": {
+    "placeholder": "搜索项目、对话、归档...",
+    "scopeAll": "全部",
+    "scopeArchive": "归档",
     "modeProjects": "项目",
     "modeConversations": "对话",
     "conversationsPlaceholder": "搜索对话内容...",
+    "keepTypingTitle": "继续输入",
+    "keepTypingDescription": "输入至少 2 个字符即可搜索对话内容。",
     "searching": "搜索中...",
     "noResults": "未找到结果",
     "tryDifferentQuery": "尝试不同的搜索词",
@@ -125,13 +132,18 @@
   },
   "deleteConfirmation": {
     "deleteProject": "移除项目",
+    "deleteProjectPermanently": "删除项目",
     "deleteSession": "删除会话",
     "confirmDelete": "您想如何处理",
     "sessionCount_one": "此项目包含 {{count}} 个对话。",
     "sessionCount_other": "此项目包含 {{count}} 个对话。",
     "removeFromSidebar": "仅从侧边栏移除",
+    "archiveProject": "归档项目",
     "deleteAllData": "永久删除所有数据",
     "allConversationsDeleted": "项目将从侧边栏中移除。您的文件、记忆和会话数据将会保留。",
     "cannotUndo": "您可以稍后重新添加此项目。"
+  },
+  "archived": {
+    "title": "归档"
   }
 }

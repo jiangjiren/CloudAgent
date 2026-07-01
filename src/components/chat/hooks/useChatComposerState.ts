@@ -701,6 +701,7 @@ export function useChatComposerState({
             model: codexModel,
             sessionSummary,
             permissionMode: permissionMode === 'plan' ? 'default' : permissionMode,
+            images: uploadedImages,
           },
         });
       } else if (provider === 'gemini') {
@@ -928,17 +929,6 @@ export function useChatComposerState({
     [setCursorPosition, syncInputOverlayScroll],
   );
 
-  const handleClearInput = useCallback(() => {
-    setInput('');
-    inputValueRef.current = '';
-    resetCommandMenuState();
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.focus();
-    }
-    setIsTextareaExpanded(false);
-  }, [resetCommandMenuState]);
-
   const handleAbortSession = useCallback(() => {
     if (!canAbortSession) {
       return;
@@ -1056,7 +1046,6 @@ export function useChatComposerState({
     handleTextareaClick,
     handleTextareaInput,
     syncInputOverlayScroll,
-    handleClearInput,
     handleAbortSession,
     handlePermissionDecision,
     handleGrantToolPermission,

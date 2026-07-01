@@ -1,7 +1,10 @@
 import { useTranslation } from 'react-i18next';
+import { createPortal } from 'react-dom';
+import { useEffect, useRef, useState } from 'react';
 import type {
   ChangeEvent,
   ClipboardEvent,
+  CSSProperties,
   FormEvent,
   KeyboardEvent,
   MouseEvent,
@@ -9,7 +12,7 @@ import type {
   RefObject,
   TouchEvent,
 } from 'react';
-import { ImageIcon, MessageSquareIcon, XIcon, ArrowDownIcon } from 'lucide-react';
+import { CommandIcon, ImageIcon, MoreHorizontalIcon, ArrowDownIcon } from 'lucide-react';
 
 import type { PendingPermissionRequest, PermissionMode, Provider } from '../../types/types';
 import {
@@ -24,10 +27,12 @@ import {
 } from '../../../../shared/view/ui';
 
 import CommandMenu from './CommandMenu';
-import ClaudeStatus from './ClaudeStatus';
 import ImageAttachment from './ImageAttachment';
 import PermissionRequestsBanner from './PermissionRequestsBanner';
 import TokenUsageSummary from './TokenUsageSummary';
+import ChatModelDropdown from './ChatModelDropdown';
+import type { LLMProvider, ProviderModelsDefinition } from '../../../../types/app';
+import type { ProviderAuthStatusMap } from '../../../provider-auth/types';
 
 interface MentionableFile {
   name: string;
@@ -51,7 +56,6 @@ interface ChatComposerProps {
     decision: { allow?: boolean; message?: string; rememberEntry?: string | null; updatedInput?: unknown },
   ) => void;
   handleGrantToolPermission: (suggestion: { entry: string; toolName: string }) => { success: boolean };
-  claudeStatus: { text: string; tokens: number; can_interrupt: boolean } | null;
   isLoading: boolean;
   onAbortSession: () => void;
   provider: Provider | string;
@@ -61,8 +65,6 @@ interface ChatComposerProps {
   onShowTokenUsage: () => void;
   slashCommandsCount: number;
   onToggleCommandMenu: () => void;
-  hasInput: boolean;
-  onClearInput: () => void;
   isUserScrolledUp: boolean;
   hasMessages: boolean;
   onScrollToBottom: () => void;
@@ -99,13 +101,143 @@ interface ChatComposerProps {
   placeholder: string;
   isTextareaExpanded: boolean;
   sendByCtrlEnter?: boolean;
+  // Model selector rendered to the left of the send button
+  setProvider: (next: LLMProvider) => void;
+  claudeModel: string;
+  setClaudeModel: (model: string) => void;
+  cursorModel: string;
+  setCursorModel: (model: string) => void;
+  codexModel: string;
+  setCodexModel: (model: string) => void;
+  geminiModel: string;
+  setGeminiModel: (model: string) => void;
+  opencodeModel: string;
+  setOpenCodeModel: (model: string) => void;
+  providerModelCatalog: Partial<Record<LLMProvider, ProviderModelsDefinition>>;
+  providerModelsLoading: boolean;
+  providerAuthStatus: ProviderAuthStatusMap;
+  onShowModelSettings?: () => void;
+}
+
+type ComposerMoreMenuProps = {
+  tokenBudget: Record<string, unknown> | null;
+  onShowTokenUsage: () => void;
+  moreLabel: string;
+  tokenUsageLabel: string;
+  tokenUsageUnitLabel: string;
+};
+
+function ComposerMoreMenu({
+  tokenBudget,
+  onShowTokenUsage,
+  moreLabel,
+  tokenUsageLabel,
+  tokenUsageUnitLabel,
+}: ComposerMoreMenuProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [menuStyle, setMenuStyle] = useState<CSSProperties | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setMenuStyle(null);
+      return;
+    }
+
+    const updatePosition = () => {
+      const button = buttonRef.current;
+      if (!button) return;
+
+      const rect = button.getBoundingClientRect();
+      const menuWidth = 224;
+      const viewportPadding = 8;
+      const left = Math.min(
+        window.innerWidth - menuWidth - viewportPadding,
+        Math.max(viewportPadding, rect.right - menuWidth),
+      );
+
+      setMenuStyle({
+        position: 'fixed',
+        zIndex: 9999,
+        left,
+        bottom: window.innerHeight - rect.top + 8,
+        width: menuWidth,
+      });
+    };
+
+    const rafId = window.requestAnimationFrame(updatePosition);
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+
+    const handlePointerDown = (event: globalThis.MouseEvent) => {
+      const target = event.target as Node;
+      if (buttonRef.current?.contains(target) || menuRef.current?.contains(target)) {
+        return;
+      }
+      setIsOpen(false);
+    };
+
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
+
+  const handleShowTokenUsage = () => {
+    setIsOpen(false);
+    onShowTokenUsage();
+  };
+
+  return (
+    <>
+      <PromptInputButton
+        ref={buttonRef}
+        tooltip={{ content: moreLabel }}
+        onClick={() => setIsOpen((current) => !current)}
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+        aria-label={moreLabel}
+      >
+        <MoreHorizontalIcon />
+      </PromptInputButton>
+
+      {isOpen && typeof document !== 'undefined' && createPortal(
+        <div
+          ref={menuRef}
+          role="menu"
+          style={menuStyle || { position: 'fixed', left: -9999, bottom: -9999, width: 224 }}
+          className="rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg"
+        >
+          <TokenUsageSummary
+            usage={tokenBudget}
+            onClick={handleShowTokenUsage}
+            variant="menuitem"
+            label={tokenUsageLabel}
+            unitLabel={tokenUsageUnitLabel}
+          />
+        </div>,
+        document.body,
+      )}
+    </>
+  );
 }
 
 export default function ChatComposer({
   pendingPermissionRequests,
   handlePermissionDecision,
   handleGrantToolPermission,
-  claudeStatus,
   isLoading,
   onAbortSession,
   provider,
@@ -115,8 +247,6 @@ export default function ChatComposer({
   onShowTokenUsage,
   slashCommandsCount,
   onToggleCommandMenu,
-  hasInput,
-  onClearInput,
   isUserScrolledUp,
   hasMessages,
   onScrollToBottom,
@@ -153,6 +283,21 @@ export default function ChatComposer({
   placeholder,
   isTextareaExpanded,
   sendByCtrlEnter,
+  setProvider,
+  claudeModel,
+  setClaudeModel,
+  cursorModel,
+  setCursorModel,
+  codexModel,
+  setCodexModel,
+  geminiModel,
+  setGeminiModel,
+  opencodeModel,
+  setOpenCodeModel,
+  providerModelCatalog,
+  providerModelsLoading,
+  providerAuthStatus,
+  onShowModelSettings,
 }: ChatComposerProps) {
   const { t } = useTranslation('chat');
   const textareaRect = textareaRef.current?.getBoundingClientRect();
@@ -167,20 +312,8 @@ export default function ChatComposer({
     (r) => r.toolName === 'AskUserQuestion'
   );
 
-  // Hide the thinking/status bar while any permission request is pending
-  const hasPendingPermissions = pendingPermissionRequests.length > 0;
-
   return (
     <div className="flex-shrink-0 p-2 pb-2 sm:p-4 sm:pb-4 md:p-4 md:pb-6">
-      {!hasPendingPermissions && (
-        <ClaudeStatus
-          status={claudeStatus}
-          isLoading={isLoading}
-          onAbort={onAbortSession}
-          provider={provider}
-        />
-      )}
-
       {pendingPermissionRequests.length > 0 && (
         <div className="mx-auto mb-3 max-w-4xl">
           <PermissionRequestsBanner
@@ -315,6 +448,21 @@ export default function ChatComposer({
               <ImageIcon />
             </PromptInputButton>
 
+            <PromptInputButton
+              tooltip={{ content: t('input.showAllCommands') }}
+              onClick={onToggleCommandMenu}
+              className="relative"
+            >
+              <CommandIcon />
+              {slashCommandsCount > 0 && (
+                <span
+                  className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground"
+                >
+                  {slashCommandsCount}
+                </span>
+              )}
+            </PromptInputButton>
+
             <button
               type="button"
               onClick={onModeSwitch}
@@ -355,33 +503,13 @@ export default function ChatComposer({
               </div>
             </button>
 
-            <TokenUsageSummary usage={tokenBudget} onClick={onShowTokenUsage} />
-
-            <PromptInputButton
-              tooltip={{ content: t('input.showAllCommands') }}
-              onClick={onToggleCommandMenu}
-              className="relative"
-            >
-              <MessageSquareIcon />
-              {slashCommandsCount > 0 && (
-                <span
-                  className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground"
-                >
-                  {slashCommandsCount}
-                </span>
-              )}
-            </PromptInputButton>
-
-            {hasInput && (
-              <PromptInputButton
-                tooltip={{ content: t('input.clearInput', { defaultValue: 'Clear input' }) }}
-                onClick={onClearInput}
-                className="hidden sm:flex"
-              >
-                <XIcon />
-              </PromptInputButton>
-            )}
-
+            <ComposerMoreMenu
+              tokenBudget={tokenBudget}
+              onShowTokenUsage={onShowTokenUsage}
+              moreLabel={t('input.moreActions', { defaultValue: 'More' })}
+              tokenUsageLabel={t('input.tokenUsage', { defaultValue: 'Token usage' })}
+              tokenUsageUnitLabel={t('input.tokensUsed', { defaultValue: 'tokens used' })}
+            />
           </PromptInputTools>
 
           <div className="flex items-center gap-2">
@@ -392,6 +520,25 @@ export default function ChatComposer({
             >
               {sendByCtrlEnter ? t('input.hintText.ctrlEnter') : t('input.hintText.enter')}
             </div>
+            <ChatModelDropdown
+              provider={provider as LLMProvider}
+              setProvider={setProvider}
+              claudeModel={claudeModel}
+              setClaudeModel={setClaudeModel}
+              cursorModel={cursorModel}
+              setCursorModel={setCursorModel}
+              codexModel={codexModel}
+              setCodexModel={setCodexModel}
+              geminiModel={geminiModel}
+              setGeminiModel={setGeminiModel}
+              opencodeModel={opencodeModel}
+              setOpenCodeModel={setOpenCodeModel}
+              providerModelCatalog={providerModelCatalog}
+              providerModelsLoading={providerModelsLoading}
+              providerAuthStatus={providerAuthStatus}
+              onShowSettings={onShowModelSettings}
+              textareaRef={textareaRef}
+            />
             <PromptInputSubmit
               onClick={isLoading ? onAbortSession : undefined}
               disabled={!isLoading && !input.trim()}

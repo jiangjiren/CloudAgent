@@ -11,6 +11,7 @@ import { useChatSessionState } from '../hooks/useChatSessionState';
 import { useChatRealtimeHandlers } from '../hooks/useChatRealtimeHandlers';
 import { useChatComposerState } from '../hooks/useChatComposerState';
 import { useSessionStore } from '../../../stores/useSessionStore';
+import { useProviderAuthStatus } from '../../provider-auth/hooks/useProviderAuthStatus';
 
 import ChatMessagesPane from './subcomponents/ChatMessagesPane';
 import ChatComposer from './subcomponents/ChatComposer';
@@ -88,6 +89,13 @@ function ChatInterface({
     selectedSession,
     selectedProject,
   });
+
+  // Connection status drives the composer model dropdown: only authenticated
+  // providers are offered there.
+  const { providerAuthStatus, refreshProviderAuthStatuses } = useProviderAuthStatus();
+  useEffect(() => {
+    void refreshProviderAuthStatuses();
+  }, [refreshProviderAuthStatuses]);
 
   const {
     chatMessages,
@@ -170,7 +178,6 @@ function ChatInterface({
     handleTextareaClick,
     handleTextareaInput,
     syncInputOverlayScroll,
-    handleClearInput,
     handleAbortSession,
     handlePermissionDecision,
     handleGrantToolPermission,
@@ -314,6 +321,9 @@ function ChatInterface({
           onWheel={handleScroll}
           onTouchMove={handleScroll}
           isLoadingSessionMessages={isLoadingSessionMessages}
+          isLoading={isLoading}
+          claudeStatus={claudeStatus}
+          hasPendingPermissions={pendingPermissionRequests.length > 0}
           chatMessages={chatMessages}
           selectedSession={selectedSession}
           currentSessionId={currentSessionId}
@@ -362,7 +372,6 @@ function ChatInterface({
           pendingPermissionRequests={pendingPermissionRequests}
           handlePermissionDecision={handlePermissionDecision}
           handleGrantToolPermission={handleGrantToolPermission}
-          claudeStatus={claudeStatus}
           isLoading={isLoading}
           onAbortSession={handleAbortSession}
           provider={provider}
@@ -372,8 +381,6 @@ function ChatInterface({
           onShowTokenUsage={showCostModal}
           slashCommandsCount={slashCommandsCount}
           onToggleCommandMenu={handleToggleCommandMenu}
-          hasInput={Boolean(input.trim())}
-          onClearInput={handleClearInput}
           isUserScrolledUp={isUserScrolledUp}
           hasMessages={chatMessages.length > 0}
           onScrollToBottom={scrollToBottomAndReset}
@@ -425,6 +432,21 @@ function ChatInterface({
           })}
           isTextareaExpanded={isTextareaExpanded}
           sendByCtrlEnter={sendByCtrlEnter}
+          setProvider={(next) => setProvider(next as Provider)}
+          claudeModel={claudeModel}
+          setClaudeModel={setClaudeModel}
+          cursorModel={cursorModel}
+          setCursorModel={setCursorModel}
+          codexModel={codexModel}
+          setCodexModel={setCodexModel}
+          geminiModel={geminiModel}
+          setGeminiModel={setGeminiModel}
+          opencodeModel={opencodeModel}
+          setOpenCodeModel={setOpenCodeModel}
+          providerModelCatalog={providerModelCatalog}
+          providerModelsLoading={providerModelsLoading}
+          providerAuthStatus={providerAuthStatus}
+          onShowModelSettings={onShowSettings}
         />
       </div>
 

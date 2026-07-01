@@ -81,7 +81,7 @@ export class ClaudeProviderAuth implements IProviderAuth {
    * Checks Claude credentials in the same priority order used by Claude Code.
    */
   private async checkCredentials(): Promise<ClaudeCredentialsStatus> {
-    const missingCredentialsError = 'Claude CLI is not authenticated. Run claude /login or configure ANTHROPIC_API_KEY.';
+    const missingCredentialsError = 'Claude CLI is not authenticated. Run claude auth login or configure ANTHROPIC_API_KEY.';
 
     if (process.env.ANTHROPIC_AUTH_TOKEN?.trim()) {
       return { authenticated: true, email: 'Auth Token', method: 'api_key' };
@@ -122,7 +122,7 @@ export class ClaudeProviderAuth implements IProviderAuth {
           authenticated: false,
           email: null,
           method: null,
-          error: 'Claude login has expired. Run claude /login again.',
+          error: 'Claude login has expired. Run claude auth login again.',
         };
       }
 
@@ -133,12 +133,12 @@ export class ClaudeProviderAuth implements IProviderAuth {
         error: missingCredentialsError,
       };
     } catch (error) {
-      let errorMessage = 'Unable to read Claude credentials. Run claude /login again.';
+      let errorMessage = 'Unable to read Claude credentials. Run claude auth login again.';
 
       if (hasErrorCode(error, 'ENOENT')) {
         errorMessage = missingCredentialsError;
       } else if (error instanceof SyntaxError) {
-        errorMessage = 'Claude credentials are unreadable. Run claude /login again.';
+        errorMessage = 'Claude credentials are unreadable. Run claude auth login again.';
       }
 
       return {

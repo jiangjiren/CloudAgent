@@ -83,6 +83,7 @@ function chatMessageToNormalized(
     kind: 'text',
     role: msg.type === 'user' ? 'user' : 'assistant',
     content: msg.content || '',
+    images: Array.isArray(msg.images) && msg.images.length > 0 ? msg.images : undefined,
   } as NormalizedMessage;
 }
 
@@ -133,6 +134,8 @@ export function useChatSessionState({
   const scrollPositionRef = useRef({ height: 0, top: 0 });
   const loadAllFinishedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadAllOverlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionMessagesLoadingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionMessagesLoadingRequestRef = useRef(0);
   const lastLoadedSessionKeyRef = useRef<string | null>(null);
   /**
    * Tracks the last processed value from `useProjectsState.newSessionTrigger`.
@@ -204,11 +207,25 @@ export function useChatSessionState({
       clearTimeout(loadAllFinishedTimerRef.current);
       loadAllFinishedTimerRef.current = null;
     }
+    if (sessionMessagesLoadingTimerRef.current) {
+      clearTimeout(sessionMessagesLoadingTimerRef.current);
+      sessionMessagesLoadingTimerRef.current = null;
+    }
+    sessionMessagesLoadingRequestRef.current += 1;
+    setIsLoadingSessionMessages(false);
   }, [newSessionTrigger, pendingViewSessionRef, resetStreamingState]);
 
   /* ---------------------------------------------------------------- */
   /*  Derive chatMessages from the store                              */
   /* ---------------------------------------------------------------- */
+
+  useEffect(() => () => {
+    if (sessionMessagesLoadingTimerRef.current) {
+      clearTimeout(sessionMessagesLoadingTimerRef.current);
+      sessionMessagesLoadingTimerRef.current = null;
+    }
+    sessionMessagesLoadingRequestRef.current += 1;
+  }, []);
 
   const activeSessionId = selectedSession?.id || currentSessionId || null;
   const [pendingUserMessage, setPendingUserMessage] = useState<ChatMessage | null>(null);
@@ -447,6 +464,12 @@ export function useChatSessionState({
       setTotalMessages(0);
       setTokenBudget(null);
       lastLoadedSessionKeyRef.current = null;
+      if (sessionMessagesLoadingTimerRef.current) {
+        clearTimeout(sessionMessagesLoadingTimerRef.current);
+        sessionMessagesLoadingTimerRef.current = null;
+      }
+      sessionMessagesLoadingRequestRef.current += 1;
+      setIsLoadingSessionMessages(false);
       return;
     }
 
@@ -498,7 +521,27 @@ export function useChatSessionState({
     lastLoadedSessionKeyRef.current = sessionKey;
 
     // Fetch from server → store updates → chatMessages re-derives automatically
-    setIsLoadingSessionMessages(true);
+    if (sessionMessagesLoadingTimerRef.current) {
+      clearTimeout(sessionMessagesLoadingTimerRef.current);
+      sessionMessagesLoadingTimerRef.current = null;
+    }
+    const loadingRequestId = sessionMessagesLoadingRequestRef.current + 1;
+    sessionMessagesLoadingRequestRef.current = loadingRequestId;
+    sessionMessagesLoadingTimerRef.current = setTimeout(() => {
+      if (sessionMessagesLoadingRequestRef.current !== loadingRequestId) return;
+      sessionMessagesLoadingTimerRef.current = null;
+      setIsLoadingSessionMessages(true);
+    }, 250);
+
+    const finishLoadingSessionMessages = () => {
+      if (sessionMessagesLoadingRequestRef.current !== loadingRequestId) return;
+      if (sessionMessagesLoadingTimerRef.current) {
+        clearTimeout(sessionMessagesLoadingTimerRef.current);
+        sessionMessagesLoadingTimerRef.current = null;
+      }
+      setIsLoadingSessionMessages(false);
+    };
+
     sessionStore.fetchFromServer(selectedSession.id, {
       provider: (selectedSession.__provider || provider) as LLMProvider,
       projectId: selectedProject.projectId,
@@ -506,14 +549,15 @@ export function useChatSessionState({
       limit: MESSAGES_PER_PAGE,
       offset: 0,
     }).then(slot => {
+      if (sessionMessagesLoadingRequestRef.current !== loadingRequestId) return;
       if (slot) {
         setHasMoreMessages(slot.hasMore);
         setTotalMessages(slot.total);
         if (slot.tokenUsage) setTokenBudget(slot.tokenUsage as Record<string, unknown>);
       }
-      setIsLoadingSessionMessages(false);
+      finishLoadingSessionMessages();
     }).catch(() => {
-      setIsLoadingSessionMessages(false);
+      finishLoadingSessionMessages();
     });
   }, [
     pendingViewSessionRef,

@@ -14,6 +14,8 @@
  */
 
 import { Codex } from '@openai/codex-sdk';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import { notifyRunFailed, notifyRunStopped } from './services/notification-orchestrator.js';
 import { sessionsService } from './modules/providers/services/sessions.service.js';
 import { providerAuthService } from './modules/providers/services/provider-auth.service.js';
@@ -22,6 +24,63 @@ import { createNormalizedMessage } from './shared/utils.js';
 
 // Track active sessions
 const activeCodexSessions = new Map();
+
+/**
+ * Saves base64 data-URL images to temp files so the Codex SDK can attach them
+ * as `local_image` inputs. Mirrors claude-sdk.js handleImages, but Codex takes
+ * structured image inputs rather than paths embedded in the prompt text.
+ * @param {Array<{data?: string}>} images
+ * @param {string} cwd
+ * @returns {Promise<{tempImagePaths: string[], tempDir: string|null}>}
+ */
+async function handleCodexImages(images, cwd) {
+  const tempImagePaths = [];
+  let tempDir = null;
+
+  if (!images || images.length === 0) {
+    return { tempImagePaths, tempDir };
+  }
+
+  try {
+    const workingDir = cwd || process.cwd();
+    tempDir = path.join(workingDir, '.tmp', 'images', Date.now().toString());
+    await fs.mkdir(tempDir, { recursive: true });
+
+    for (const [index, image] of images.entries()) {
+      const matches = image?.data?.match(/^data:([^;]+);base64,(.+)$/);
+      if (!matches) {
+        console.error('[Codex] Invalid image data format');
+        continue;
+      }
+      const [, mimeType, base64Data] = matches;
+      const extension = mimeType.split('/')[1] || 'png';
+      const filepath = path.join(tempDir, `image_${index}.${extension}`);
+      await fs.writeFile(filepath, Buffer.from(base64Data, 'base64'));
+      tempImagePaths.push(filepath);
+    }
+
+    return { tempImagePaths, tempDir };
+  } catch (error) {
+    console.error('[Codex] Error processing images:', error);
+    return { tempImagePaths, tempDir };
+  }
+}
+
+async function cleanupCodexTempFiles(tempImagePaths, tempDir) {
+  if (!tempImagePaths || tempImagePaths.length === 0) {
+    return;
+  }
+  try {
+    for (const imagePath of tempImagePaths) {
+      await fs.unlink(imagePath).catch(() => {});
+    }
+    if (tempDir) {
+      await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+    }
+  } catch (error) {
+    console.error('[Codex] Temp file cleanup error:', error);
+  }
+}
 
 function readUsageNumber(value) {
   const parsed = Number(value);
@@ -228,6 +287,7 @@ export async function queryCodex(command, options = {}, ws) {
     cwd,
     projectPath,
     model,
+    images,
     permissionMode = 'default'
   } = options;
 
@@ -242,6 +302,8 @@ export async function queryCodex(command, options = {}, ws) {
 
   let codex;
   let thread;
+  let codexImagePaths = [];
+  let codexImageTempDir = null;
   let capturedSessionId = sessionId;
   let sessionCreatedSent = false;
   let terminalFailure = null;
@@ -285,8 +347,27 @@ export async function queryCodex(command, options = {}, ws) {
       registerSession(capturedSessionId);
     }
 
+    // Attach images as Codex local_image inputs (base64 data URL -> temp files).
+    const { tempImagePaths, tempDir: imageTempDir } = await handleCodexImages(
+      images,
+      workingDirectory,
+    );
+    codexImagePaths = tempImagePaths;
+    codexImageTempDir = imageTempDir;
+
+    const runInput =
+      tempImagePaths.length > 0
+        ? [
+            { type: 'text', text: command },
+            ...tempImagePaths.map((imagePath) => ({
+              type: 'local_image',
+              path: imagePath,
+            })),
+          ]
+        : command;
+
     // Execute with streaming
-    const streamedTurn = await thread.runStreamed(command, {
+    const streamedTurn = await thread.runStreamed(runInput, {
       signal: abortController.signal
     });
 
@@ -398,6 +479,7 @@ export async function queryCodex(command, options = {}, ws) {
     }
 
   } finally {
+    await cleanupCodexTempFiles(codexImagePaths, codexImageTempDir);
     // Update session status
     if (capturedSessionId) {
       const session = activeCodexSessions.get(capturedSessionId);

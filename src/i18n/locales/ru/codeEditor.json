@@ -22,7 +22,9 @@
     "fullscreen": "Полноэкранный режим",
     "close": "Закрыть",
     "previewMarkdown": "Предпросмотр markdown",
-    "editMarkdown": "Редактировать markdown"
+    "editMarkdown": "Редактировать markdown",
+    "previewHtml": "Предпросмотр HTML",
+    "editHtml": "Редактировать HTML"
   },
   "footer": {
     "lines": "Строк:",

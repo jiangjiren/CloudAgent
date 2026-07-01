@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MouseEvent as ReactMouseEvent } from 'react';
+
 import type { Project } from '../../../types/app';
 import type { CodeEditorDiffInfo, CodeEditorFile } from '../types/types';
 
@@ -49,7 +50,7 @@ export const useEditorSidebar = ({
 
   const handleResizeStart = useCallback(
     (event: ReactMouseEvent<HTMLDivElement>) => {
-      if (isMobile) {
+      if (isMobile || event.button !== 0) {
         return;
       }
 
@@ -57,6 +58,7 @@ export const useEditorSidebar = ({
       setHasManualWidth(true);
       setIsResizing(true);
       event.preventDefault();
+      event.stopPropagation();
     },
     [isMobile],
   );
@@ -64,6 +66,11 @@ export const useEditorSidebar = ({
   useEffect(() => {
     const handleMouseMove = (event: globalThis.MouseEvent) => {
       if (!isResizing) {
+        return;
+      }
+
+      if (event.buttons !== 1) {
+        setIsResizing(false);
         return;
       }
 
@@ -86,20 +93,24 @@ export const useEditorSidebar = ({
       }
     };
 
-    const handleMouseUp = () => {
+    const stopResize = () => {
       setIsResizing(false);
     };
 
     if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('mousemove', handleMouseMove, true);
+      document.addEventListener('mouseup', stopResize, true);
+      document.addEventListener('contextmenu', stopResize, true);
+      window.addEventListener('blur', stopResize);
       document.body.style.cursor = 'col-resize';
       document.body.style.userSelect = 'none';
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mousemove', handleMouseMove, true);
+      document.removeEventListener('mouseup', stopResize, true);
+      document.removeEventListener('contextmenu', stopResize, true);
+      window.removeEventListener('blur', stopResize);
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };
@@ -109,6 +120,7 @@ export const useEditorSidebar = ({
     editingFile,
     editorWidth,
     editorExpanded,
+    isResizing,
     hasManualWidth,
     resizeHandleRef,
     handleFileOpen,

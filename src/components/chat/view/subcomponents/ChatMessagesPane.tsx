@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Dispatch, RefObject, SetStateAction } from 'react';
 
 import type { ChatMessage } from '../../types/types';
@@ -13,12 +13,22 @@ import { getIntrinsicMessageKey } from '../../utils/messageKeys';
 
 import MessageComponent from './MessageComponent';
 import ProviderSelectionEmptyState from './ProviderSelectionEmptyState';
+import AssistantPendingBubble from './AssistantPendingBubble';
+
+type AssistantStatus = {
+  text?: string;
+  tokens?: number;
+  can_interrupt?: boolean;
+} | null;
 
 interface ChatMessagesPaneProps {
   scrollContainerRef: RefObject<HTMLDivElement>;
   onWheel: () => void;
   onTouchMove: () => void;
   isLoadingSessionMessages: boolean;
+  isLoading: boolean;
+  claudeStatus: AssistantStatus;
+  hasPendingPermissions: boolean;
   chatMessages: ChatMessage[];
   selectedSession: ProjectSession | null;
   currentSessionId: string | null;
@@ -68,6 +78,9 @@ export default function ChatMessagesPane({
   onWheel,
   onTouchMove,
   isLoadingSessionMessages,
+  isLoading,
+  claudeStatus,
+  hasPendingPermissions,
   chatMessages,
   selectedSession,
   currentSessionId,
@@ -115,6 +128,21 @@ export default function ChatMessagesPane({
   const messageKeyMapRef = useRef<WeakMap<ChatMessage, string>>(new WeakMap());
   const allocatedKeysRef = useRef<Set<string>>(new Set());
   const generatedMessageKeyCounterRef = useRef(0);
+  const [pendingBubbleReady, setPendingBubbleReady] = useState(false);
+  const lastMessage = chatMessages[chatMessages.length - 1] ?? null;
+  const hasAssistantTextInProgress = Boolean(
+    lastMessage?.type === 'assistant' &&
+    !lastMessage.isThinking &&
+    !lastMessage.isToolUse &&
+    String(lastMessage.content || lastMessage.displayText || '').trim().length > 0,
+  );
+  const shouldPreparePendingBubble = Boolean(
+    isLoading &&
+    !isLoadingSessionMessages &&
+    !hasPendingPermissions &&
+    chatMessages.length > 0,
+  );
+  const showPendingBubble = shouldPreparePendingBubble && pendingBubbleReady;
 
   // Keep keys stable across prepends so existing MessageComponent instances retain local state.
   const getMessageKey = useCallback((message: ChatMessage) => {
@@ -139,6 +167,37 @@ export default function ChatMessagesPane({
     messageKeyMapRef.current.set(message, candidateKey);
     return candidateKey;
   }, []);
+
+  useEffect(() => {
+    if (!shouldPreparePendingBubble) {
+      setPendingBubbleReady(false);
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setPendingBubbleReady(true);
+    }, 600);
+
+    return () => window.clearTimeout(timer);
+  }, [shouldPreparePendingBubble]);
+
+  useEffect(() => {
+    if (!showPendingBubble) {
+      return;
+    }
+
+    const container = scrollContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    if (distanceFromBottom <= 160) {
+      window.requestAnimationFrame(() => {
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+      });
+    }
+  }, [scrollContainerRef, showPendingBubble]);
 
   return (
     <div
@@ -268,9 +327,15 @@ export default function ChatMessagesPane({
               />
             );
           })}
+
+          {showPendingBubble && (
+            <AssistantPendingBubble
+              status={claudeStatus}
+              isContinuing={hasAssistantTextInProgress}
+            />
+          )}
         </>
       )}
     </div>
   );
 }
-
