@@ -134,6 +134,14 @@
     },
     "pressToSearch": "<kbd>{{shortcut}}</kbd> を押してセッション、ファイル、コミットを検索"
   },
+  "starters": {
+    "explainLabel": "このコードベースの説明",
+    "explainPrompt": "このコードベースを案内してください。全体の構造、主要なディレクトリ、各部分がどう連携しているかを説明してください。",
+    "reviewLabel": "未コミットの変更をまとめる",
+    "reviewPrompt": "現在の git status と diff を確認し、ワーキングツリーの変更内容をまとめてください。",
+    "fixLabel": "バグ修正を手伝って",
+    "fixPrompt": "バグを修正したいです。まず症状を聞いてから、原因の特定と修正を手伝ってください。"
+  },
   "session": {
     "continue": {
       "title": "会話を続ける",

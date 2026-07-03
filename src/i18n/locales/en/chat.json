@@ -162,6 +162,14 @@
     },
     "pressToSearch": "Press <kbd>{{shortcut}}</kbd> to search sessions, files, and commits"
   },
+  "starters": {
+    "explainLabel": "Explain this codebase",
+    "explainPrompt": "Give me a tour of this codebase: explain the overall structure, the main directories, and how the pieces fit together.",
+    "reviewLabel": "Summarize my uncommitted changes",
+    "reviewPrompt": "Look at the current git status and diff, and summarize what has changed in the working tree.",
+    "fixLabel": "Help me fix a bug",
+    "fixPrompt": "I want to fix a bug. Ask me for the symptoms, then help me track down the cause and fix it."
+  },
   "session": {
     "continue": {
       "title": "Continue your conversation",

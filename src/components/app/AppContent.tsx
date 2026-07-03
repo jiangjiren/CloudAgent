@@ -52,6 +52,8 @@ function AppContentInner() {
     refreshProjectsSilently,
     sidebarSharedProps,
     handleNewSession,
+    handleProjectSelect,
+    handleSessionSelect,
   } = useProjectsState({
     sessionId,
     navigate,
@@ -174,8 +176,11 @@ function AppContentInner() {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <MainContent
+          projects={sidebarSharedProps.projects}
           selectedProject={selectedProject}
           selectedSession={selectedSession}
+          onProjectSelect={handleProjectSelect}
+          onSessionSelect={handleSessionSelect}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           ws={ws}

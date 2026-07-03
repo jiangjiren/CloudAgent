@@ -121,7 +121,6 @@ export function useSidebarController({
   const [initialSessionsLoaded, setInitialSessionsLoaded] = useState<Set<string>>(new Set());
   const [currentTime, setCurrentTime] = useState(new Date());
   const [projectSortOrder, setProjectSortOrder] = useState<ProjectSortOrder>('name');
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [editingSession, setEditingSession] = useState<string | null>(null);
   const [editingSessionName, setEditingSessionName] = useState('');
   const [searchFilter, setSearchFilter] = useState('');
@@ -853,18 +852,6 @@ export function useSidebarController({
     }
   }, [fetchArchivedSessions, onRefresh, t]);
 
-  const refreshProjects = useCallback(async () => {
-    setIsRefreshing(true);
-    try {
-      await Promise.all([
-        Promise.resolve(onRefresh()),
-        fetchArchivedSessions(),
-      ]);
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [fetchArchivedSessions, onRefresh]);
-
   const updateSessionSummary = useCallback(
     // `_projectId` and `_provider` are preserved for compatibility with
     // existing sidebar callback signatures; backend rename only needs sessionId.
@@ -911,7 +898,6 @@ export function useSidebarController({
     initialSessionsLoaded,
     currentTime,
     projectSortOrder,
-    isRefreshing,
     editingSession,
     editingSessionName,
     searchFilter,
@@ -941,7 +927,6 @@ export function useSidebarController({
     openArchivedSession,
     restoreArchivedProject,
     restoreArchivedSession,
-    refreshProjects,
     updateSessionSummary,
     collapseSidebar,
     expandSidebar,

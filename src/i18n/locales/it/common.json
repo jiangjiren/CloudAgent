@@ -22,7 +22,8 @@
     "shell": "Terminale",
     "files": "File",
     "git": "Controllo Versione",
-    "tasks": "Attività"
+    "tasks": "Attività",
+    "more": "Altro"
   },
   "status": {
     "loading": "Caricamento...",
@@ -94,6 +95,15 @@
     "newSession": "Nuova sessione",
     "untitledSession": "Sessione senza titolo",
     "projectFiles": "File del progetto"
+  },
+  "welcome": {
+    "backTitle": "Riprendi da dove avevi lasciato",
+    "backDescription": "Riprendi una sessione recente o entra in un progetto.",
+    "emptyTitle": "Crea il tuo primo progetto",
+    "emptyDescription": "Collega una cartella del tuo computer per iniziare a lavorare sul codice con l'IA.",
+    "newProject": "Nuovo progetto",
+    "recentSessions": "Sessioni recenti",
+    "projects": "Progetti"
   },
   "fileTree": {
     "loading": "Caricamento file...",

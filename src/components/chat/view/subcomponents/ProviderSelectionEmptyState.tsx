@@ -1,5 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { BookOpen, Bug, GitCompare, type LucideIcon } from "lucide-react";
 
 import type {
   ProjectSession,
@@ -32,14 +33,15 @@ type ProviderSelectionEmptyStateProps = {
   setInput: React.Dispatch<React.SetStateAction<string>>;
 };
 
-// The model picker now lives in the composer (next to the send button), so this
-// empty state is intentionally minimal: a welcome line plus the optional task
-// banner. The remaining props are kept on the interface so the caller does not
-// have to change, but are no longer rendered here.
+// The model picker now lives in the composer (next to the send button). This
+// empty state shows a welcome line, starter prompts that prefill the composer,
+// and the optional task banner. The remaining props are kept on the interface
+// so the caller does not have to change, but are no longer rendered here.
 export default function ProviderSelectionEmptyState({
   selectedSession,
   currentSessionId,
   provider,
+  textareaRef,
   tasksEnabled,
   isTaskMasterInstalled,
   onShowAllTasks,
@@ -51,6 +53,29 @@ export default function ProviderSelectionEmptyState({
     defaultValue: "Start the next task",
   });
 
+  const starters: Array<{ icon: LucideIcon; label: string; prompt: string }> = [
+    {
+      icon: BookOpen,
+      label: t("starters.explainLabel"),
+      prompt: t("starters.explainPrompt"),
+    },
+    {
+      icon: GitCompare,
+      label: t("starters.reviewLabel"),
+      prompt: t("starters.reviewPrompt"),
+    },
+    {
+      icon: Bug,
+      label: t("starters.fixLabel"),
+      prompt: t("starters.fixPrompt"),
+    },
+  ];
+
+  const applyStarter = (prompt: string) => {
+    setInput(prompt);
+    textareaRef.current?.focus();
+  };
+
   if (!selectedSession && !currentSessionId) {
     return (
       <div className="flex h-full items-center justify-center px-4">
@@ -61,6 +86,22 @@ export default function ProviderSelectionEmptyState({
           <p className="mt-1 text-[13px] text-muted-foreground">
             {t("providerSelection.description")}
           </p>
+
+          <div className="mt-6 space-y-2 text-left">
+            {starters.map((starter) => (
+              <button
+                key={starter.label}
+                type="button"
+                className="flex w-full items-center gap-3 rounded-xl border border-border/70 bg-card/50 px-3.5 py-2.5 text-left transition-colors hover:border-border hover:bg-accent/50"
+                onClick={() => applyStarter(starter.prompt)}
+              >
+                <starter.icon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                <span className="min-w-0 flex-1 truncate text-sm text-foreground">
+                  {starter.label}
+                </span>
+              </button>
+            ))}
+          </div>
 
           {provider && tasksEnabled && isTaskMasterInstalled && (
             <div className="mt-5">

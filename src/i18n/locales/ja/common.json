@@ -22,7 +22,8 @@
     "shell": "シェル",
     "files": "ファイル",
     "git": "ソース管理",
-    "tasks": "タスク"
+    "tasks": "タスク",
+    "more": "その他"
   },
   "status": {
     "loading": "読み込み中...",
@@ -94,6 +95,15 @@
     "newSession": "新しいセッション",
     "untitledSession": "無題のセッション",
     "projectFiles": "プロジェクトファイル"
+  },
+  "welcome": {
+    "backTitle": "前回の続きから始める",
+    "backDescription": "最近のセッションを再開するか、プロジェクトを開きます。",
+    "emptyTitle": "最初のプロジェクトを作成",
+    "emptyDescription": "ローカルのフォルダを接続して、AI とコードの作業を始めましょう。",
+    "newProject": "新規プロジェクト",
+    "recentSessions": "最近のセッション",
+    "projects": "プロジェクト"
   },
   "fileTree": {
     "loading": "ファイルを読み込んでいます...",

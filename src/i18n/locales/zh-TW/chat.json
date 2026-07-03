@@ -178,6 +178,14 @@
     },
     "pressToSearch": "按 <kbd>{{shortcut}}</kbd> 搜尋工作階段、檔案和提交"
   },
+  "starters": {
+    "explainLabel": "介紹這個程式碼庫",
+    "explainPrompt": "帶我了解這個程式碼庫：整體結構、主要目錄，以及各部分如何協作。",
+    "reviewLabel": "總結我未提交的變更",
+    "reviewPrompt": "查看目前的 git status 和 diff，總結工作區中有哪些變更。",
+    "fixLabel": "幫我修復一個 bug",
+    "fixPrompt": "我想修復一個 bug。先詢問我具體的症狀，然後幫我找出原因並修復它。"
+  },
   "session": {
     "continue": {
       "title": "繼續您的對話",

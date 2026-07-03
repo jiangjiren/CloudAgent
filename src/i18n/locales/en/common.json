@@ -22,7 +22,8 @@
     "shell": "Shell",
     "files": "Files",
     "git": "Source Control",
-    "tasks": "Tasks"
+    "tasks": "Tasks",
+    "more": "More"
   },
   "status": {
     "loading": "Loading...",
@@ -94,6 +95,15 @@
     "newSession": "New Session",
     "untitledSession": "Untitled Session",
     "projectFiles": "Project Files"
+  },
+  "welcome": {
+    "backTitle": "Pick up where you left off",
+    "backDescription": "Resume a recent session, or jump back into a project.",
+    "emptyTitle": "Create your first project",
+    "emptyDescription": "Connect a folder from your machine to start working on your code with AI.",
+    "newProject": "New Project",
+    "recentSessions": "Recent Sessions",
+    "projects": "Projects"
   },
   "fileTree": {
     "loading": "Loading files...",

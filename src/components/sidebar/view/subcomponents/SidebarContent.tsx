@@ -381,7 +381,7 @@ function ArchiveResultsList({
                   <span className="truncate text-sm font-medium text-foreground">
                     {project.displayName}
                   </span>
-                  <span className="inline-flex items-center justify-center rounded-full bg-muted px-1 py-px text-center text-[7px] font-medium uppercase leading-none tracking-[0.02em] text-muted-foreground">
+                  <span className="inline-flex items-center justify-center rounded-full bg-muted px-1.5 py-px text-center text-[10px] font-medium uppercase leading-none tracking-[0.02em] text-muted-foreground">
                     {t('archived.projectArchived', 'Project archived')}
                   </span>
                 </div>
@@ -447,7 +447,7 @@ function ArchiveResultsList({
                   {group.projectDisplayName}
                 </span>
                 {group.isProjectArchived && (
-                  <span className="inline-flex items-center justify-center rounded-full bg-muted px-1 py-px text-center text-[7px] font-medium uppercase leading-none tracking-[0.02em] text-muted-foreground">
+                  <span className="inline-flex items-center justify-center rounded-full bg-muted px-1.5 py-px text-center text-[10px] font-medium uppercase leading-none tracking-[0.02em] text-muted-foreground">
                     {t('archived.projectArchived', 'Project archived')}
                   </span>
                 )}
@@ -531,8 +531,6 @@ type SidebarContentProps = {
   onRestoreArchivedSession: (sessionId: string) => void;
   onDeleteArchivedSession: (session: ArchivedSessionListItem) => void;
   onConversationResultClick: (projectId: string | null, sessionId: string, provider: string, messageTimestamp?: string | null, messageSnippet?: string | null) => void;
-  onRefresh: () => void;
-  isRefreshing: boolean;
   onCreateProject: () => void;
   onCollapseSidebar: () => void;
   onShowSettings: () => void;
@@ -562,8 +560,6 @@ export default function SidebarContent({
   onRestoreArchivedSession,
   onDeleteArchivedSession,
   onConversationResultClick,
-  onRefresh,
-  isRefreshing,
   onCreateProject,
   onCollapseSidebar,
   onShowSettings,
@@ -615,8 +611,6 @@ export default function SidebarContent({
         onClearSearchFilter={onClearSearchFilter}
         searchMode={searchMode}
         onSearchModeChange={onSearchModeChange}
-        onRefresh={onRefresh}
-        isRefreshing={isRefreshing}
         onCreateProject={onCreateProject}
         onCollapseSidebar={onCollapseSidebar}
         t={t}
@@ -740,7 +734,9 @@ export default function SidebarContent({
         )}
       </ScrollArea>
 
-      {!hasSearchQuery && (
+      {/* Don't tease an empty archive — the affordance only earns its place
+          once there's something in it to come back to. */}
+      {!hasSearchQuery && archivedSessionsCount > 0 && (
         <div className="border-t border-border/70 bg-background/95">
           <button
             type="button"

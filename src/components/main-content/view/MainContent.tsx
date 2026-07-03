@@ -31,8 +31,11 @@ type TasksSettingsContextValue = {
 };
 
 function MainContent({
+  projects,
   selectedProject,
   selectedSession,
+  onProjectSelect,
+  onSessionSelect,
   activeTab,
   setActiveTab,
   ws,
@@ -105,7 +108,16 @@ function MainContent({
   }
 
   if (!selectedProject) {
-    return <MainContentStateView mode="empty" isMobile={isMobile} onMenuClick={onMenuClick} />;
+    return (
+      <MainContentStateView
+        mode="empty"
+        isMobile={isMobile}
+        onMenuClick={onMenuClick}
+        projects={projects}
+        onProjectSelect={onProjectSelect}
+        onSessionSelect={onSessionSelect}
+      />
+    );
   }
 
   return (

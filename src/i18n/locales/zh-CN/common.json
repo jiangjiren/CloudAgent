@@ -22,7 +22,8 @@
     "shell": "终端",
     "files": "文件",
     "git": "源代码管理",
-    "tasks": "任务"
+    "tasks": "任务",
+    "more": "更多"
   },
   "status": {
     "loading": "加载中...",
@@ -94,6 +95,15 @@
     "newSession": "新会话",
     "untitledSession": "未命名会话",
     "projectFiles": "项目文件"
+  },
+  "welcome": {
+    "backTitle": "接着上次的进度继续",
+    "backDescription": "恢复最近的会话，或直接进入一个项目。",
+    "emptyTitle": "创建你的第一个项目",
+    "emptyDescription": "关联本机的一个代码目录，即可开始与 AI 协作开发。",
+    "newProject": "新建项目",
+    "recentSessions": "最近会话",
+    "projects": "项目"
   },
   "fileTree": {
     "loading": "正在加载文件...",

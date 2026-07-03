@@ -1,4 +1,4 @@
-import { Archive, Folder, FolderPlus, MessageSquare, RefreshCw, Search, X, PanelLeftClose } from 'lucide-react';
+import { Archive, Folder, FolderPlus, MessageSquare, Search, X, PanelLeftClose } from 'lucide-react';
 import type { TFunction } from 'i18next';
 import { Button, Input } from '../../../../shared/view/ui';
 import { IS_PLATFORM } from '../../../../constants/config';
@@ -20,8 +20,6 @@ type SidebarHeaderProps = {
   onClearSearchFilter: () => void;
   searchMode: SidebarSearchMode;
   onSearchModeChange: (mode: SidebarSearchMode) => void;
-  onRefresh: () => void;
-  isRefreshing: boolean;
   onCreateProject: () => void;
   onCollapseSidebar: () => void;
   t: TFunction;
@@ -39,8 +37,6 @@ export default function SidebarHeader({
   onClearSearchFilter,
   searchMode,
   onSearchModeChange,
-  onRefresh,
-  isRefreshing,
   onCreateProject,
   onCollapseSidebar,
   t,
@@ -87,20 +83,6 @@ export default function SidebarHeader({
           )}
 
           <div className="flex flex-shrink-0 items-center gap-0.5">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 rounded-lg p-0 text-muted-foreground hover:bg-accent/80 hover:text-foreground"
-              onClick={onRefresh}
-              disabled={isRefreshing}
-              title={t('tooltips.refresh')}
-            >
-              <RefreshCw
-                className={`h-3.5 w-3.5 ${
-                  isRefreshing ? 'animate-spin' : ''
-                }`}
-              />
-            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -204,15 +186,10 @@ export default function SidebarHeader({
 
           <div className="flex flex-shrink-0 gap-1.5">
             <button
-              className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/50 transition-all active:scale-95"
-              onClick={onRefresh}
-              disabled={isRefreshing}
-            >
-              <RefreshCw className={`h-4 w-4 text-muted-foreground ${isRefreshing ? 'animate-spin' : ''}`} />
-            </button>
-            <button
               className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/90 text-primary-foreground transition-all active:scale-95"
               onClick={onCreateProject}
+              aria-label={t('tooltips.createProject')}
+              title={t('tooltips.createProject')}
             >
               <FolderPlus className="h-4 w-4" />
             </button>

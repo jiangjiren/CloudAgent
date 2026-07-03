@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { authenticatedFetch } from '../utils/api';
+import { useAuth } from '../components/auth/context/AuthContext';
 
 export type Plugin = {
   name: string;
@@ -42,6 +43,7 @@ export function usePlugins() {
 }
 
 export function PluginsProvider({ children }: { children: ReactNode }) {
+  const { token } = useAuth();
   const [plugins, setPlugins] = useState<Plugin[]>([]);
   const [loading, setLoading] = useState(true);
   const [pluginsError, setPluginsError] = useState<string | null>(null);
@@ -72,9 +74,13 @@ export function PluginsProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // PluginsProvider mounts above ProtectedRoute, so this fires before a
+  // freshly-logged-in user has a bearer token — that first call 401s and
+  // (since state only updates on success) plugins stay empty until this
+  // effect re-fires on the token transitioning from null to a real value.
   useEffect(() => {
     void refreshPlugins();
-  }, [refreshPlugins]);
+  }, [token, refreshPlugins]);
 
   const installPlugin = useCallback(async (url: string) => {
     try {

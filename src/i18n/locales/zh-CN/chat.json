@@ -142,6 +142,14 @@
     },
     "pressToSearch": "按 <kbd>{{shortcut}}</kbd> 搜索会话、文件和提交"
   },
+  "starters": {
+    "explainLabel": "介绍这个代码库",
+    "explainPrompt": "带我了解一下这个代码库：整体结构、主要目录，以及各部分是如何协作的。",
+    "reviewLabel": "总结我未提交的改动",
+    "reviewPrompt": "查看当前的 git status 和 diff，总结一下工作区里有哪些改动。",
+    "fixLabel": "帮我修一个 bug",
+    "fixPrompt": "我想修一个 bug。先问我具体的现象，然后帮我定位原因并修复它。"
+  },
   "session": {
     "continue": {
       "title": "继续您的对话",

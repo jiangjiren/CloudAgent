@@ -10,6 +10,12 @@ import { decodeHtmlEntities, unescapeWithMathProtection, formatUsageLimitText } 
 
 const MAX_RENDERED_TOOL_RESULT_CHARS = 50000;
 
+type ToolResultForRender = {
+  content?: unknown;
+  isError?: boolean;
+  toolUseResult?: unknown;
+};
+
 function formatToolResultContent(content: unknown): string {
   const serialized = typeof content === 'string' ? content : JSON.stringify(content);
   const text = typeof serialized === 'string' ? serialized : String(content ?? '');
@@ -30,10 +36,10 @@ function measureToolResultContent(content: unknown): number {
   }
 }
 
-function buildToolResultForRender(toolName: string, rawToolResult: NormalizedMessage): ChatMessage['toolResult'] {
+function buildToolResultForRender(toolName: string, rawToolResult: ToolResultForRender): ChatMessage['toolResult'] {
   const isError = Boolean(rawToolResult.isError);
   const rawContent = rawToolResult.content;
-  const toolUseResult = (rawToolResult as any).toolUseResult;
+  const toolUseResult = rawToolResult.toolUseResult;
   const rawResult = {
     content: rawContent,
     isError,

@@ -5,6 +5,7 @@ export type PaletteOps = {
   openFile: (path: string) => void;
   openSettings: (tab?: string) => void;
   refreshProjects: () => Promise<void> | void;
+  openCreateProject: () => void;
 };
 
 type Registry = MutableRefObject<Partial<PaletteOps>>;
@@ -15,6 +16,7 @@ const defaultOps: PaletteOps = {
   openFile: () => undefined,
   openSettings: () => undefined,
   refreshProjects: () => undefined,
+  openCreateProject: () => undefined,
 };
 
 export function PaletteOpsProvider({ children }: { children: ReactNode }) {
@@ -29,6 +31,7 @@ export function usePaletteOps(): PaletteOps {
       openFile: (path) => (ref?.current.openFile ?? defaultOps.openFile)(path),
       openSettings: (tab) => (ref?.current.openSettings ?? defaultOps.openSettings)(tab),
       refreshProjects: () => (ref?.current.refreshProjects ?? defaultOps.refreshProjects)(),
+      openCreateProject: () => (ref?.current.openCreateProject ?? defaultOps.openCreateProject)(),
     }),
     [ref],
   );
@@ -36,18 +39,21 @@ export function usePaletteOps(): PaletteOps {
 
 export function usePaletteOpsRegister(partial: Partial<PaletteOps>) {
   const ref = useContext(PaletteOpsContext);
-  const { openFile, openSettings, refreshProjects } = partial;
+  const { openFile, openSettings, refreshProjects, openCreateProject } = partial;
 
   useEffect(() => {
     if (!ref) return undefined;
-    const prev = { ...ref.current };
-    if (openFile) ref.current.openFile = openFile;
-    if (openSettings) ref.current.openSettings = openSettings;
-    if (refreshProjects) ref.current.refreshProjects = refreshProjects;
+    const registry = ref.current;
+    const prev = { ...registry };
+    if (openFile) registry.openFile = openFile;
+    if (openSettings) registry.openSettings = openSettings;
+    if (refreshProjects) registry.refreshProjects = refreshProjects;
+    if (openCreateProject) registry.openCreateProject = openCreateProject;
     return () => {
-      if (openFile && ref.current.openFile === openFile) ref.current.openFile = prev.openFile;
-      if (openSettings && ref.current.openSettings === openSettings) ref.current.openSettings = prev.openSettings;
-      if (refreshProjects && ref.current.refreshProjects === refreshProjects) ref.current.refreshProjects = prev.refreshProjects;
+      if (openFile && registry.openFile === openFile) registry.openFile = prev.openFile;
+      if (openSettings && registry.openSettings === openSettings) registry.openSettings = prev.openSettings;
+      if (refreshProjects && registry.refreshProjects === refreshProjects) registry.refreshProjects = prev.refreshProjects;
+      if (openCreateProject && registry.openCreateProject === openCreateProject) registry.openCreateProject = prev.openCreateProject;
     };
-  }, [ref, openFile, openSettings, refreshProjects]);
+  }, [ref, openFile, openSettings, refreshProjects, openCreateProject]);
 }

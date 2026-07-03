@@ -22,7 +22,8 @@
     "shell": "Terminal",
     "files": "Dateien",
     "git": "Quellcodeverwaltung",
-    "tasks": "Aufgaben"
+    "tasks": "Aufgaben",
+    "more": "Mehr"
   },
   "status": {
     "loading": "Lädt...",
@@ -94,6 +95,15 @@
     "newSession": "Neue Sitzung",
     "untitledSession": "Unbenannte Sitzung",
     "projectFiles": "Projektdateien"
+  },
+  "welcome": {
+    "backTitle": "Machen Sie dort weiter, wo Sie aufgehört haben",
+    "backDescription": "Setzen Sie eine kürzliche Sitzung fort oder öffnen Sie ein Projekt.",
+    "emptyTitle": "Erstellen Sie Ihr erstes Projekt",
+    "emptyDescription": "Verbinden Sie einen Ordner auf Ihrem Rechner, um mit KI an Ihrem Code zu arbeiten.",
+    "newProject": "Neues Projekt",
+    "recentSessions": "Letzte Sitzungen",
+    "projects": "Projekte"
   },
   "fileTree": {
     "loading": "Dateien werden geladen...",

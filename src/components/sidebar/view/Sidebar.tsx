@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useDeviceSettings } from '../../../hooks/useDeviceSettings';
 import { useUiPreferences } from '../../../hooks/useUiPreferences';
 import { useSidebarController } from '../hooks/useSidebarController';
 import { useTaskMaster } from '../../../contexts/TaskMasterContext';
-import { usePaletteOps } from '../../../contexts/PaletteOpsContext';
+import { usePaletteOps, usePaletteOpsRegister } from '../../../contexts/PaletteOpsContext';
 import { useTasksSettings } from '../../../contexts/TasksSettingsContext';
 import type { Project, LLMProvider } from '../../../types/app';
 import type { MCPServerStatus, SidebarProps } from '../types/types';
@@ -55,7 +55,6 @@ function Sidebar({
     editingName,
     initialSessionsLoaded,
     currentTime,
-    isRefreshing,
     editingSession,
     editingSessionName,
     searchFilter,
@@ -91,7 +90,6 @@ function Sidebar({
     openArchivedSession,
     restoreArchivedProject,
     restoreArchivedSession,
-    refreshProjects,
     updateSessionSummary,
     collapseSidebar: handleCollapseSidebar,
     expandSidebar: handleExpandSidebar,
@@ -128,6 +126,11 @@ function Sidebar({
     document.documentElement.classList.toggle('pwa-mode', isPWA);
     document.body.classList.toggle('pwa-mode', isPWA);
   }, [isPWA]);
+
+  // Let other surfaces (welcome screen, command palette) open the same
+  // create-project dialog the sidebar owns.
+  const openCreateProject = useCallback(() => setShowNewProject(true), [setShowNewProject]);
+  usePaletteOpsRegister({ openCreateProject });
 
   const handleProjectCreated = () => {
     void paletteOps.refreshProjects();
@@ -271,10 +274,6 @@ function Sidebar({
                 handleSessionClick(sessionObj, projectId ?? '');
               }
             }}
-            onRefresh={() => {
-              void refreshProjects();
-            }}
-            isRefreshing={isRefreshing}
             onCreateProject={() => setShowNewProject(true)}
             onCollapseSidebar={handleCollapseSidebar}
             onShowSettings={onShowSettings}

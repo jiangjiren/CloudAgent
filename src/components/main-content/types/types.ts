@@ -35,8 +35,11 @@ export type PrdFile = {
 };
 
 export type MainContentProps = {
+  projects: Project[];
   selectedProject: Project | null;
   selectedSession: ProjectSession | null;
+  onProjectSelect: (project: Project) => void;
+  onSessionSelect: (session: ProjectSession) => void;
   activeTab: AppTab;
   setActiveTab: Dispatch<SetStateAction<AppTab>>;
   ws: WebSocket | null;
@@ -71,6 +74,9 @@ export type MainContentStateViewProps = {
   mode: 'loading' | 'empty';
   isMobile: boolean;
   onMenuClick: () => void;
+  projects?: Project[];
+  onProjectSelect?: (project: Project) => void;
+  onSessionSelect?: (session: ProjectSession) => void;
 };
 
 export type MobileMenuButtonProps = {

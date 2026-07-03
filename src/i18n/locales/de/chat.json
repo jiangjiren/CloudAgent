@@ -157,6 +157,14 @@
     },
     "pressToSearch": "Drücke <kbd>{{shortcut}}</kbd>, um Sitzungen, Dateien und Commits zu durchsuchen"
   },
+  "starters": {
+    "explainLabel": "Diese Codebasis erklären",
+    "explainPrompt": "Führen Sie mich durch diese Codebasis: Erklären Sie die Gesamtstruktur, die wichtigsten Verzeichnisse und wie die Teile zusammenspielen.",
+    "reviewLabel": "Meine uncommitteten Änderungen zusammenfassen",
+    "reviewPrompt": "Sehen Sie sich den aktuellen git status und diff an und fassen Sie zusammen, was sich im Arbeitsverzeichnis geändert hat.",
+    "fixLabel": "Hilf mir, einen Bug zu beheben",
+    "fixPrompt": "Ich möchte einen Bug beheben. Fragen Sie mich nach den Symptomen und helfen Sie mir dann, die Ursache zu finden und zu beheben."
+  },
   "session": {
     "continue": {
       "title": "Unterhaltung fortsetzen",

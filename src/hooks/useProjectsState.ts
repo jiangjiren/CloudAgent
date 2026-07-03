@@ -405,6 +405,15 @@ export function useProjectsState({
     }
     lastHandledMessageRef.current = latestMessage;
 
+    if (latestMessage.type === 'websocket-reconnected') {
+      // A dropped connection can miss `projects_updated` events entirely;
+      // resync once the socket is back instead of leaving the list stale
+      // until the user notices and hits refresh (there's no manual refresh
+      // button — this and the visibility-regain resync below are the fallback).
+      void refreshProjectsSilently();
+      return;
+    }
+
     if (latestMessage.type === 'loading_progress') {
       if (loadingProgressTimeoutRef.current) {
         clearTimeout(loadingProgressTimeoutRef.current);
@@ -482,7 +491,26 @@ export function useProjectsState({
     if (!updatedSelectedSession) {
       setSelectedSession(null);
     }
-  }, [latestMessage, selectedProject, selectedSession, activeSessions, projects]);
+  }, [latestMessage, selectedProject, selectedSession, activeSessions, projects, refreshProjectsSilently]);
+
+  // Second fallback for the same "no manual refresh button" gap: a
+  // backgrounded tab can miss both live websocket events and the
+  // reconnect signal above (e.g. the OS suspends timers while asleep).
+  // Resync once when the tab becomes visible again.
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return undefined;
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void refreshProjectsSilently();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [refreshProjectsSilently]);
 
   useEffect(() => {
     return () => {

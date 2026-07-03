@@ -22,7 +22,8 @@
     "shell": "Shell",
     "files": "Dosyalar",
     "git": "Kaynak Kontrolü",
-    "tasks": "Görevler"
+    "tasks": "Görevler",
+    "more": "Daha Fazla"
   },
   "status": {
     "loading": "Yükleniyor...",
@@ -94,6 +95,15 @@
     "newSession": "Yeni Oturum",
     "untitledSession": "Adsız Oturum",
     "projectFiles": "Proje Dosyaları"
+  },
+  "welcome": {
+    "backTitle": "Kaldığın yerden devam et",
+    "backDescription": "Yakın tarihli bir oturuma devam et veya bir projeye geç.",
+    "emptyTitle": "İlk projeni oluştur",
+    "emptyDescription": "Kodun üzerinde yapay zekâ ile çalışmaya başlamak için bilgisayarından bir klasör bağla.",
+    "newProject": "Yeni Proje",
+    "recentSessions": "Son Oturumlar",
+    "projects": "Projeler"
   },
   "fileTree": {
     "loading": "Dosyalar yükleniyor...",

@@ -160,6 +160,14 @@
     },
     "pressToSearch": "Oturumlarda, dosyalarda ve commit'lerde arama yapmak için <kbd>{{shortcut}}</kbd> tuşlarına bas"
   },
+  "starters": {
+    "explainLabel": "Bu kod tabanını açıkla",
+    "explainPrompt": "Bana bu kod tabanını tanıt: genel yapıyı, ana dizinleri ve parçaların birbiriyle nasıl çalıştığını açıkla.",
+    "reviewLabel": "Commit'lenmemiş değişikliklerimi özetle",
+    "reviewPrompt": "Mevcut git status ve diff'e bak, çalışma ağacında nelerin değiştiğini özetle.",
+    "fixLabel": "Bir hatayı düzeltmeme yardım et",
+    "fixPrompt": "Bir hatayı düzeltmek istiyorum. Önce bana belirtileri sor, sonra nedenini bulup düzeltmeme yardım et."
+  },
   "session": {
     "continue": {
       "title": "Konuşmana devam et",

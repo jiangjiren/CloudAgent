@@ -157,6 +157,14 @@
     },
     "pressToSearch": "Premi <kbd>{{shortcut}}</kbd> per cercare sessioni, file e commit"
   },
+  "starters": {
+    "explainLabel": "Spiega questa codebase",
+    "explainPrompt": "Fammi fare un giro di questa codebase: spiega la struttura generale, le directory principali e come i pezzi si incastrano tra loro.",
+    "reviewLabel": "Riassumi le mie modifiche non committate",
+    "reviewPrompt": "Guarda il git status e il diff attuali e riassumi cosa è cambiato nella working tree.",
+    "fixLabel": "Aiutami a correggere un bug",
+    "fixPrompt": "Voglio correggere un bug. Chiedimi i sintomi, poi aiutami a individuare la causa e a risolverla."
+  },
   "session": {
     "continue": {
       "title": "Continua la tua conversazione",
