@@ -16,6 +16,7 @@ import { grantClaudeToolPermission } from '../utils/chatPermissions';
 import { safeLocalStorage } from '../utils/chatStorage';
 import type {
   ChatMessage,
+  EffortLevel,
   PendingPermissionRequest,
   PermissionMode,
 } from '../types/types';
@@ -41,6 +42,8 @@ interface UseChatComposerStateArgs {
   codexModel: string;
   geminiModel: string;
   opencodeModel: string;
+  claudeEffort: EffortLevel;
+  codexEffort: EffortLevel;
   isLoading: boolean;
   canAbortSession: boolean;
   tokenBudget: Record<string, unknown> | null;
@@ -172,6 +175,8 @@ export function useChatComposerState({
   codexModel,
   geminiModel,
   opencodeModel,
+  claudeEffort,
+  codexEffort,
   isLoading,
   canAbortSession,
   tokenBudget,
@@ -699,6 +704,7 @@ export function useChatComposerState({
             sessionId: effectiveSessionId,
             resume: Boolean(effectiveSessionId),
             model: codexModel,
+            effort: codexEffort === 'auto' ? undefined : codexEffort,
             sessionSummary,
             permissionMode: permissionMode === 'plan' ? 'default' : permissionMode,
             images: uploadedImages,
@@ -746,6 +752,7 @@ export function useChatComposerState({
             toolsSettings,
             permissionMode,
             model: claudeModel,
+            effort: claudeEffort === 'auto' ? undefined : claudeEffort,
             sessionSummary,
             images: uploadedImages,
           },
@@ -770,7 +777,9 @@ export function useChatComposerState({
       selectedSession,
       attachedImages,
       claudeModel,
+      claudeEffort,
       codexModel,
+      codexEffort,
       currentSessionId,
       cursorModel,
       executeCommand,

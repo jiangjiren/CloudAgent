@@ -7,6 +7,7 @@ import type {
   LLMProvider,
   ProviderModelsDefinition,
 } from "../../../../types/app";
+import type { EffortLevel } from "../../types/types";
 import type { ProviderAuthStatusMap } from "../../../provider-auth/types";
 import SessionProviderLogo from "../../../llm-logo-provider/SessionProviderLogo";
 
@@ -31,6 +32,10 @@ type ChatModelDropdownProps = {
   setGeminiModel: (model: string) => void;
   opencodeModel: string;
   setOpenCodeModel: (model: string) => void;
+  claudeEffort: EffortLevel;
+  setClaudeEffort: (level: EffortLevel) => void;
+  codexEffort: EffortLevel;
+  setCodexEffort: (level: EffortLevel) => void;
   providerModelCatalog: Partial<Record<LLMProvider, ProviderModelsDefinition>>;
   providerModelsLoading: boolean;
   providerAuthStatus: ProviderAuthStatusMap;
@@ -83,6 +88,10 @@ export default function ChatModelDropdown({
   setGeminiModel,
   opencodeModel,
   setOpenCodeModel,
+  claudeEffort,
+  setClaudeEffort,
+  codexEffort,
+  setCodexEffort,
   providerModelCatalog,
   providerModelsLoading,
   providerAuthStatus,
@@ -124,6 +133,88 @@ export default function ChatModelDropdown({
     );
     return found?.label || currentModel;
   }, [provider, currentModel, providerModelCatalog]);
+
+  // Thinking-depth levels, shown inside the menu rather than as a second
+  // toolbar control. 'auto' is the invisible default: nothing is sent to the
+  // backend and no badge appears on the trigger. Each provider exposes a
+  // different subset of levels (Claude has max, Codex has minimal).
+  const effortLabels: Record<EffortLevel, { label: string; description: string }> =
+    useMemo(
+      () => ({
+        auto: {
+          label: t("effort.auto", { defaultValue: "Auto" }),
+          description: t("effort.autoDescription", {
+            defaultValue: "The model decides how much to think",
+          }),
+        },
+        minimal: {
+          label: t("effort.minimal", { defaultValue: "Minimal" }),
+          description: t("effort.minimalDescription", {
+            defaultValue: "Quickest responses, barely any reasoning",
+          }),
+        },
+        low: {
+          label: t("effort.low", { defaultValue: "Low" }),
+          description: t("effort.lowDescription", {
+            defaultValue: "Fastest responses, minimal thinking",
+          }),
+        },
+        medium: {
+          label: t("effort.medium", { defaultValue: "Medium" }),
+          description: t("effort.mediumDescription", {
+            defaultValue: "Balanced depth and speed",
+          }),
+        },
+        high: {
+          label: t("effort.high", { defaultValue: "High" }),
+          description: t("effort.highDescription", {
+            defaultValue: "Deeper reasoning for harder tasks",
+          }),
+        },
+        xhigh: {
+          label: t("effort.xhigh", { defaultValue: "Very high" }),
+          description: t("effort.xhighDescription", {
+            defaultValue: "Extra depth for complex problems",
+          }),
+        },
+        max: {
+          label: t("effort.max", { defaultValue: "Max" }),
+          description: t("effort.maxDescription", {
+            defaultValue: "Maximum effort · select models only",
+          }),
+        },
+      }),
+      [t],
+    );
+
+  const providerEffortLevels: Partial<Record<LLMProvider, EffortLevel[]>> = {
+    claude: ["auto", "low", "medium", "high", "xhigh", "max"],
+    codex: ["auto", "minimal", "low", "medium", "high", "xhigh"],
+  };
+
+  const getEffortForProvider = useCallback(
+    (providerId: LLMProvider): EffortLevel | null => {
+      if (providerId === "claude") return claudeEffort;
+      if (providerId === "codex") return codexEffort;
+      return null;
+    },
+    [claudeEffort, codexEffort],
+  );
+
+  const handleEffortSelect = useCallback(
+    (providerId: LLMProvider, level: EffortLevel) => {
+      if (providerId === "claude") {
+        setClaudeEffort(level);
+        localStorage.setItem("claude-effort", level);
+      } else if (providerId === "codex") {
+        setCodexEffort(level);
+        localStorage.setItem("codex-effort", level);
+      }
+    },
+    [setClaudeEffort, setCodexEffort],
+  );
+
+  const activeEffort = getEffortForProvider(provider);
 
   const setModelForProvider = useCallback(
     (providerId: LLMProvider, modelValue: string) => {
@@ -240,6 +331,11 @@ export default function ChatModelDropdown({
           {getProviderDisplayName(provider)}
         </span>
         <span className="truncate text-muted-foreground">{currentModelLabel}</span>
+        {activeEffort && activeEffort !== "auto" && (
+          <span className="shrink-0 rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium leading-none text-primary">
+            {effortLabels[activeEffort].label}
+          </span>
+        )}
         <ChevronDown
           className={`h-3 w-3 shrink-0 text-muted-foreground transition-transform ${
             open ? "rotate-180" : ""
@@ -296,6 +392,38 @@ export default function ChatModelDropdown({
                       </button>
                     );
                   })}
+                  {providerEffortLevels[group.id] && (
+                    <div className="mt-1 border-t border-border/40 px-2 pb-1.5 pt-1.5">
+                      <div className="px-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                        {t("effort.title", { defaultValue: "Thinking depth" })}
+                      </div>
+                      <div className="mt-1.5 flex flex-wrap gap-1 px-1">
+                        {providerEffortLevels[group.id]!.map((level) => {
+                          const isActive = level === getEffortForProvider(group.id);
+                          return (
+                            <button
+                              key={level}
+                              type="button"
+                              onClick={() => handleEffortSelect(group.id, level)}
+                              className={`rounded-full border px-2 py-0.5 text-[11px] transition-colors ${
+                                isActive
+                                  ? "border-primary/40 bg-primary/10 font-medium text-primary"
+                                  : "border-border/50 text-muted-foreground hover:bg-accent hover:text-foreground"
+                              }`}
+                            >
+                              {effortLabels[level].label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="mt-1.5 px-1 text-[11px] leading-snug text-muted-foreground/80">
+                        {
+                          effortLabels[getEffortForProvider(group.id) ?? "auto"]
+                            .description
+                        }
+                      </p>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>,

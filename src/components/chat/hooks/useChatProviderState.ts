@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { authenticatedFetch } from '../../../utils/api';
-import type { PendingPermissionRequest, PermissionMode } from '../types/types';
+import type { EffortLevel, PendingPermissionRequest, PermissionMode } from '../types/types';
 import type {
   ProjectSession,
   LLMProvider,
@@ -88,6 +88,13 @@ export function useChatProviderState({ selectedSession, selectedProject }: UseCh
   });
   const [opencodeModel, setOpenCodeModel] = useState<string>(() => {
     return localStorage.getItem('opencode-model') || FALLBACK_DEFAULT_MODEL.opencode;
+  });
+  // Thinking depth per provider; 'auto' leaves each SDK's own default untouched.
+  const [claudeEffort, setClaudeEffort] = useState<EffortLevel>(() => {
+    return (localStorage.getItem('claude-effort') as EffortLevel | null) || 'auto';
+  });
+  const [codexEffort, setCodexEffort] = useState<EffortLevel>(() => {
+    return (localStorage.getItem('codex-effort') as EffortLevel | null) || 'auto';
   });
 
   const [providerModelCatalog, setProviderModelCatalog] = useState<
@@ -393,6 +400,10 @@ export function useChatProviderState({ selectedSession, selectedProject }: UseCh
     setGeminiModel,
     opencodeModel,
     setOpenCodeModel,
+    claudeEffort,
+    setClaudeEffort,
+    codexEffort,
+    setCodexEffort,
     permissionMode,
     setPermissionMode,
     pendingPermissionRequests,

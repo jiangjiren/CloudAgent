@@ -209,6 +209,12 @@ function mapCliOptionsToSDK(options = {}) {
   sdkOptions.model = options.model || CLAUDE_FALLBACK_MODELS.DEFAULT;
   // Model logged at query start below
 
+  // Map thinking effort. Omitted entirely (rather than defaulted) when unset so
+  // the SDK's own default behavior is unaffected for callers that don't send it.
+  if (options.effort) {
+    sdkOptions.effort = options.effort;
+  }
+
   // Map system prompt configuration
   sdkOptions.systemPrompt = {
     type: 'preset',

@@ -287,6 +287,7 @@ export async function queryCodex(command, options = {}, ws) {
     cwd,
     projectPath,
     model,
+    effort,
     images,
     permissionMode = 'default'
   } = options;
@@ -321,6 +322,13 @@ export async function queryCodex(command, options = {}, ws) {
       approvalPolicy,
       model: resolvedModel
     };
+
+    // Reasoning effort is only forwarded when it is one of the SDK's known
+    // levels; anything else falls back to the Codex default silently.
+    const CODEX_EFFORT_LEVELS = ['minimal', 'low', 'medium', 'high', 'xhigh'];
+    if (effort && CODEX_EFFORT_LEVELS.includes(effort)) {
+      threadOptions.modelReasoningEffort = effort;
+    }
 
     // Start or resume thread
     if (sessionId) {

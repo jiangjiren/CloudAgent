@@ -75,6 +75,10 @@ function ChatInterface({
     setGeminiModel,
     opencodeModel,
     setOpenCodeModel,
+    claudeEffort,
+    setClaudeEffort,
+    codexEffort,
+    setCodexEffort,
     permissionMode,
     pendingPermissionRequests,
     setPendingPermissionRequests,
@@ -198,6 +202,8 @@ function ChatInterface({
     codexModel,
     geminiModel,
     opencodeModel,
+    claudeEffort,
+    codexEffort,
     isLoading,
     canAbortSession,
     tokenBudget,
@@ -443,6 +449,10 @@ function ChatInterface({
           setGeminiModel={setGeminiModel}
           opencodeModel={opencodeModel}
           setOpenCodeModel={setOpenCodeModel}
+          claudeEffort={claudeEffort}
+          setClaudeEffort={setClaudeEffort}
+          codexEffort={codexEffort}
+          setCodexEffort={setCodexEffort}
           providerModelCatalog={providerModelCatalog}
           providerModelsLoading={providerModelsLoading}
           providerAuthStatus={providerAuthStatus}

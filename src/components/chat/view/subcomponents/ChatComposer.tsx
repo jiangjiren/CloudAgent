@@ -14,7 +14,7 @@ import type {
 } from 'react';
 import { CommandIcon, ImageIcon, MoreHorizontalIcon, ArrowDownIcon } from 'lucide-react';
 
-import type { PendingPermissionRequest, PermissionMode, Provider } from '../../types/types';
+import type { EffortLevel, PendingPermissionRequest, PermissionMode, Provider } from '../../types/types';
 import {
   PromptInput,
   PromptInputHeader,
@@ -113,6 +113,10 @@ interface ChatComposerProps {
   setGeminiModel: (model: string) => void;
   opencodeModel: string;
   setOpenCodeModel: (model: string) => void;
+  claudeEffort: EffortLevel;
+  setClaudeEffort: (level: EffortLevel) => void;
+  codexEffort: EffortLevel;
+  setCodexEffort: (level: EffortLevel) => void;
   providerModelCatalog: Partial<Record<LLMProvider, ProviderModelsDefinition>>;
   providerModelsLoading: boolean;
   providerAuthStatus: ProviderAuthStatusMap;
@@ -294,6 +298,10 @@ export default function ChatComposer({
   setGeminiModel,
   opencodeModel,
   setOpenCodeModel,
+  claudeEffort,
+  setClaudeEffort,
+  codexEffort,
+  setCodexEffort,
   providerModelCatalog,
   providerModelsLoading,
   providerAuthStatus,
@@ -533,6 +541,10 @@ export default function ChatComposer({
               setGeminiModel={setGeminiModel}
               opencodeModel={opencodeModel}
               setOpenCodeModel={setOpenCodeModel}
+              claudeEffort={claudeEffort}
+              setClaudeEffort={setClaudeEffort}
+              codexEffort={codexEffort}
+              setCodexEffort={setCodexEffort}
               providerModelCatalog={providerModelCatalog}
               providerModelsLoading={providerModelsLoading}
               providerAuthStatus={providerAuthStatus}
