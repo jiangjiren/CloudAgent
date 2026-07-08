@@ -18,6 +18,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { CLAUDE_FALLBACK_MODELS } from './modules/providers/list/claude/claude-models.provider.js';
+import { prepareClaudeAgentSkillsBridge } from './modules/providers/list/claude/claude-agent-skills-bridge.js';
 import { providerModelsService } from './modules/providers/services/provider-models.service.js';
 import { resolveClaudeCodeExecutablePath } from './shared/claude-cli-path.js';
 import {
@@ -542,6 +543,15 @@ async function queryClaudeSDK(command, options = {}, ws) {
       ...options,
       model: resolvedModel || options.model,
     });
+
+    const agentSkillsBridgeRoot = await prepareClaudeAgentSkillsBridge(options.cwd || options.projectPath);
+    if (agentSkillsBridgeRoot) {
+      sdkOptions.additionalDirectories = [
+        ...(sdkOptions.additionalDirectories || []),
+        agentSkillsBridgeRoot,
+      ];
+      sdkOptions.skills = 'all';
+    }
 
     // Load MCP configuration
     const mcpServers = await loadMcpConfig(options.cwd);

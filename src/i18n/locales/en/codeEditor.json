@@ -34,5 +34,18 @@
   "binaryFile": {
     "title": "Binary File",
     "message": "The file \"{{fileName}}\" cannot be displayed in the text editor because it is a binary file."
+  },
+  "sidebarTabs": {
+    "preview": "Preview",
+    "files": "Files"
+  },
+  "fileBrowser": {
+    "title": "Files",
+    "loading": "Loading files…",
+    "empty": "No files yet"
+  },
+  "imagePreview": {
+    "loading": "Loading image…",
+    "error": "Unable to load image"
   }
 }

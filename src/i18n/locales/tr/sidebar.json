@@ -17,11 +17,17 @@
     "projects": "proje",
     "noMatchingProjects": "Eşleşen proje yok",
     "tryDifferentSearch": "Arama terimini değiştirmeyi dene",
-    "runClaudeCli": "Başlamak için bir proje dizininde Claude CLI çalıştır"
+    "runClaudeCli": "Başlamak için bir proje dizininde Claude CLI çalıştır",
+    "sessionCountLabel_one": "{{count}} oturum",
+    "sessionCountLabel_other": "{{count}} oturum"
   },
   "app": {
     "title": "CloudCLI",
     "subtitle": "AI kodlama asistanı arayüzü"
+  },
+  "sections": {
+    "projects": "Projeler",
+    "recent": "Son Kullanılanlar"
   },
   "sessions": {
     "title": "Oturumlar",
@@ -49,7 +55,8 @@
     "save": "Kaydet",
     "cancel": "İptal",
     "clearSearch": "Aramayı temizle",
-    "openCommandPalette": "Komut paletini aç"
+    "openCommandPalette": "Komut paletini aç",
+    "pinToProject": "Proje olarak sabitle"
   },
   "navigation": {
     "chat": "Sohbet",
@@ -69,7 +76,8 @@
     "rename": "Yeniden Adlandır",
     "joinCommunity": "Topluluğa Katıl",
     "reportIssue": "Sorun Bildir",
-    "starOnGithub": "GitHub'da Yıldızla"
+    "starOnGithub": "GitHub'da Yıldızla",
+    "newConversation": "Yeni Sohbet"
   },
   "branding": {
     "openSource": "Açık Kaynak"
@@ -133,5 +141,8 @@
     "deleteAllData": "Tüm veriyi kalıcı olarak sil",
     "allConversationsDeleted": "Proje kenar çubuğundan kaldırılacak. Dosyaların, bellek verilerin ve oturum verilerin korunacak.",
     "cannotUndo": "Projeyi sonra tekrar ekleyebilirsin."
+  },
+  "footer": {
+    "guest": "Hesap"
   }
 }

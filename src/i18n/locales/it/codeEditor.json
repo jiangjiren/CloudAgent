@@ -34,5 +34,18 @@
   "binaryFile": {
     "title": "File binario",
     "message": "Il file \"{{fileName}}\" non può essere visualizzato nell'editor di testo perché è un file binario."
+  },
+  "sidebarTabs": {
+    "preview": "Anteprima",
+    "files": "File"
+  },
+  "fileBrowser": {
+    "title": "File",
+    "loading": "Caricamento file…",
+    "empty": "Nessun file"
+  },
+  "imagePreview": {
+    "loading": "Caricamento immagine…",
+    "error": "Impossibile caricare l'immagine"
   }
 }

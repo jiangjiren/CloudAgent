@@ -10,12 +10,16 @@ import type {
   ProviderSkillSource,
 } from '@/shared/types.js';
 import {
+  addUniqueProviderSkillSource,
   findProviderSkillMarkdownFiles,
+  findTopmostGitRoot,
   readJsonConfig,
   readObjectRecord,
   readOptionalString,
   readProviderSkillMarkdownDefinition,
 } from '@/shared/utils.js';
+
+import { getClaudeAgentSkillSources } from './claude-agent-skills-bridge.js';
 
 const getClaudeHomePath = (): string => path.join(os.homedir(), '.claude');
 
@@ -84,19 +88,52 @@ export class ClaudeSkillsProvider extends SkillsProvider {
 
   protected async getSkillSources(workspacePath: string): Promise<ProviderSkillSource[]> {
     const claudeHomePath = getClaudeHomePath();
+    const sources: ProviderSkillSource[] = [];
+    const seenRootDirs = new Set<string>();
 
-    return [
-      {
-        scope: 'user',
-        rootDir: path.join(claudeHomePath, 'skills'),
-        commandPrefix: '/',
-      },
-      {
+    addUniqueProviderSkillSource(sources, seenRootDirs, {
+      scope: 'user',
+      rootDir: path.join(claudeHomePath, 'skills'),
+      commandPrefix: '/',
+    });
+
+    for (const projectRoot of await this.getProjectSearchRoots(workspacePath)) {
+      addUniqueProviderSkillSource(sources, seenRootDirs, {
         scope: 'project',
-        rootDir: path.join(workspacePath, '.claude', 'skills'),
+        rootDir: path.join(projectRoot, '.claude', 'skills'),
         commandPrefix: '/',
-      },
-    ];
+      });
+    }
+
+    for (const source of await getClaudeAgentSkillSources(workspacePath)) {
+      addUniqueProviderSkillSource(sources, seenRootDirs, source);
+    }
+
+    return sources;
+  }
+
+  private async getProjectSearchRoots(workspacePath: string): Promise<string[]> {
+    const repoRoot = await findTopmostGitRoot(workspacePath);
+    const roots: string[] = [];
+    const normalizedWorkspacePath = path.resolve(workspacePath);
+    const normalizedRepoRoot = repoRoot ? path.resolve(repoRoot) : null;
+    let currentPath = normalizedWorkspacePath;
+
+    while (true) {
+      roots.push(currentPath);
+      if (!normalizedRepoRoot || currentPath === normalizedRepoRoot) {
+        break;
+      }
+
+      const parentPath = path.dirname(currentPath);
+      if (parentPath === currentPath) {
+        break;
+      }
+
+      currentPath = parentPath;
+    }
+
+    return roots;
   }
 
   private async listPluginSkills(claudeHomePath: string): Promise<ProviderSkill[]> {

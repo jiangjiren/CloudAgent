@@ -7,7 +7,7 @@ import type {
   ProjectRepositoryRow,
   WorkspacePathValidationResult,
 } from '@/shared/types.js';
-import { AppError, normalizeProjectPath, validateWorkspacePath } from '@/shared/utils.js';
+import { AppError, WORKSPACES_ROOT, normalizeProjectPath, validateWorkspacePath } from '@/shared/utils.js';
 
 type CreateProjectInput = {
   projectPath: string;
@@ -29,6 +29,7 @@ type ProjectApiView = {
   customName: string | null;
   isArchived: boolean;
   isStarred: boolean;
+  isDefault?: boolean;
   sessions: [];
   cursorSessions: [];
   codexSessions: [];
@@ -42,6 +43,11 @@ type ProjectApiView = {
 
 type CreateProjectServiceResult = {
   outcome: 'created' | 'reactivated_archived';
+  project: ProjectApiView;
+};
+
+type EnsureDefaultProjectServiceResult = {
+  outcome: 'created' | 'reactivated_archived' | 'existing';
   project: ProjectApiView;
 };
 
@@ -149,4 +155,45 @@ export async function createProject(
 export function updateProjectDisplayName(projectId: string, newDisplayName: unknown): void {
   const trimmed = typeof newDisplayName === 'string' ? newDisplayName.trim() : '';
   projectsDb.updateCustomProjectNameById(projectId, trimmed.length > 0 ? trimmed : null);
+}
+
+/**
+ * Resolves the filesystem path used for the always-available "default workspace" project.
+ *
+ * This is the project that backs the sidebar's project-independent "New Chat" entry point:
+ * a new user can start chatting without first understanding or creating a project. The
+ * directory name is configurable via `DEFAULT_WORKSPACE_DIR` (falls back to `workspace`) so
+ * deployments can avoid colliding with a pre-existing folder under `WORKSPACES_ROOT`.
+ */
+export function getDefaultWorkspacePath(): string {
+  const workspaceDirName = process.env.DEFAULT_WORKSPACE_DIR || 'workspace';
+  return normalizeProjectPath(path.join(WORKSPACES_ROOT, workspaceDirName));
+}
+
+/**
+ * Get-or-creates the default workspace project.
+ *
+ * `projectsDb.createProjectPath` only reactivates rows that are currently archived; it treats
+ * an existing *active* row at the same path as a conflict (see `createProject` above). Since
+ * this helper must be safely callable on every "New Chat" click, it first checks for an active
+ * row and short-circuits before delegating to `createProject` for the create/reactivate cases.
+ */
+export async function ensureDefaultProject(
+  dependencies: CreateProjectDependencies = defaultDependencies,
+): Promise<EnsureDefaultProjectServiceResult> {
+  const defaultProjectPath = getDefaultWorkspacePath();
+
+  const existingProjectRow = dependencies.getProjectByPath(defaultProjectPath);
+  if (existingProjectRow && !existingProjectRow.isArchived) {
+    return {
+      outcome: 'existing',
+      project: { ...mapProjectRowToApiView(existingProjectRow), isDefault: true },
+    };
+  }
+
+  const createdResult = await createProject({ projectPath: defaultProjectPath, customName: null }, dependencies);
+  return {
+    outcome: createdResult.outcome,
+    project: { ...createdResult.project, isDefault: true },
+  };
 }

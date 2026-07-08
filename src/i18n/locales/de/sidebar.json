@@ -17,11 +17,17 @@
     "projects": "Projekte",
     "noMatchingProjects": "Keine passenden Projekte",
     "tryDifferentSearch": "Versuch, den Suchbegriff anzupassen",
-    "runClaudeCli": "Führ Claude CLI in einem Projektverzeichnis aus, um zu beginnen"
+    "runClaudeCli": "Führ Claude CLI in einem Projektverzeichnis aus, um zu beginnen",
+    "sessionCountLabel_one": "{{count}} Sitzung",
+    "sessionCountLabel_other": "{{count}} Sitzungen"
   },
   "app": {
     "title": "CloudCLI",
     "subtitle": "KI-Programmierassistent-Oberfläche"
+  },
+  "sections": {
+    "projects": "Projekte",
+    "recent": "Zuletzt"
   },
   "sessions": {
     "title": "Sitzungen",
@@ -49,7 +55,8 @@
     "save": "Speichern",
     "cancel": "Abbrechen",
     "clearSearch": "Suche leeren",
-    "openCommandPalette": "Befehlspalette öffnen"
+    "openCommandPalette": "Befehlspalette öffnen",
+    "pinToProject": "Als Projekt anheften"
   },
   "navigation": {
     "chat": "Chat",
@@ -69,7 +76,8 @@
     "rename": "Umbenennen",
     "joinCommunity": "Community beitreten",
     "reportIssue": "Problem melden",
-    "starOnGithub": "Stern auf GitHub"
+    "starOnGithub": "Stern auf GitHub",
+    "newConversation": "Neuer Chat"
   },
   "branding": {
     "openSource": "Open Source"
@@ -133,5 +141,8 @@
     "deleteAllData": "Alle Daten dauerhaft löschen",
     "allConversationsDeleted": "Das Projekt wird aus der Seitenleiste entfernt. Deine Dateien, Erinnerungen und Sitzungsdaten bleiben erhalten.",
     "cannotUndo": "Du kannst das Projekt später erneut hinzufügen."
+  },
+  "footer": {
+    "guest": "Konto"
   }
 }

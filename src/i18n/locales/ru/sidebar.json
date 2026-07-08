@@ -17,11 +17,17 @@
     "projects": "проекты",
     "noMatchingProjects": "Нет подходящих проектов",
     "tryDifferentSearch": "Попробуйте изменить поисковый запрос",
-    "runClaudeCli": "Запустите Claude CLI в каталоге проекта для начала работы"
+    "runClaudeCli": "Запустите Claude CLI в каталоге проекта для начала работы",
+    "sessionCountLabel_one": "{{count}} сессия",
+    "sessionCountLabel_other": "{{count}} сессий"
   },
   "app": {
     "title": "CloudCLI",
     "subtitle": "Интерфейс AI помощника для программирования"
+  },
+  "sections": {
+    "projects": "Проекты",
+    "recent": "Недавние"
   },
   "sessions": {
     "title": "Сеансы",
@@ -49,7 +55,8 @@
     "save": "Сохранить",
     "cancel": "Отмена",
     "clearSearch": "Очистить поиск",
-    "openCommandPalette": "Открыть палитру команд"
+    "openCommandPalette": "Открыть палитру команд",
+    "pinToProject": "Закрепить как проект"
   },
   "navigation": {
     "chat": "Чат",
@@ -69,7 +76,8 @@
     "rename": "Переименовать",
     "joinCommunity": "Присоединиться к сообществу",
     "reportIssue": "Сообщить о проблеме",
-    "starOnGithub": "Звезда на GitHub"
+    "starOnGithub": "Звезда на GitHub",
+    "newConversation": "Новый чат"
   },
   "branding": {
     "openSource": "Открытый исходный код"
@@ -139,5 +147,8 @@
     "deleteAllData": "Удалить все данные навсегда",
     "allConversationsDeleted": "Проект будет убран из боковой панели. Ваши файлы, воспоминания и данные сеансов сохранятся.",
     "cannotUndo": "Вы сможете добавить проект позже."
+  },
+  "footer": {
+    "guest": "Аккаунт"
   }
 }

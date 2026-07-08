@@ -73,7 +73,8 @@ const writeClaudePluginCommand = async (
  */
 test('providerSkillsService lists claude user, project, and enabled plugin skills', { concurrency: false }, async () => {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'llm-skills-claude-'));
-  const workspacePath = path.join(tempRoot, 'workspace');
+  const repoRoot = path.join(tempRoot, 'repo');
+  const workspacePath = path.join(repoRoot, 'packages', 'app');
   const commandPluginInstallPath = path.join(
     tempRoot,
     '.claude',
@@ -120,6 +121,7 @@ test('providerSkillsService lists claude user, project, and enabled plugin skill
     '000',
   );
   const siblingSkillPluginPath = path.join(path.dirname(skillPluginInstallPath), 'legacy777');
+  await fs.mkdir(path.join(repoRoot, '.git'), { recursive: true });
   await fs.mkdir(workspacePath, { recursive: true });
 
   const restoreHomeDir = patchHomeDir(tempRoot);
@@ -135,6 +137,24 @@ test('providerSkillsService lists claude user, project, and enabled plugin skill
       'claude-project-dir',
       'claude-project',
       'Claude project skill',
+    );
+    await writeSkill(
+      path.join(repoRoot, '.claude', 'skills'),
+      'claude-root-dir',
+      'claude-root',
+      'Claude root project skill',
+    );
+    await writeSkill(
+      path.join(workspacePath, '.agents', 'skills'),
+      'claude-agents-project-dir',
+      'claude-agents-project',
+      'Claude compatible Agents project skill',
+    );
+    await writeSkill(
+      path.join(tempRoot, '.agents', 'skills'),
+      'claude-agents-user-dir',
+      'claude-agents-user',
+      'Claude compatible Agents user skill',
     );
     await writeClaudePluginManifest(commandPluginInstallPath, 'Notion');
     await writeClaudePluginCommand(
@@ -272,6 +292,12 @@ test('providerSkillsService lists claude user, project, and enabled plugin skill
     assert.equal(byName.get('claude-user')?.command, '/claude-user');
     assert.equal(byName.get('claude-project')?.scope, 'project');
     assert.equal(byName.get('claude-project')?.command, '/claude-project');
+    assert.equal(byName.get('claude-root')?.scope, 'project');
+    assert.equal(byName.get('claude-root')?.command, '/claude-root');
+    assert.equal(byName.get('claude-agents-project')?.scope, 'project');
+    assert.equal(byName.get('claude-agents-project')?.command, '/claude-agents-project');
+    assert.equal(byName.get('claude-agents-user')?.scope, 'user');
+    assert.equal(byName.get('claude-agents-user')?.command, '/claude-agents-user');
 
     const pluginCommand = byName.get('insert-row');
     assert.equal(pluginCommand?.scope, 'plugin');

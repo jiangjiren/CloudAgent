@@ -17,11 +17,17 @@
     "projects": "projects",
     "noMatchingProjects": "No matching projects",
     "tryDifferentSearch": "Try adjusting your search term",
-    "runClaudeCli": "Run Claude CLI in a project directory to get started"
+    "runClaudeCli": "Run Claude CLI in a project directory to get started",
+    "sessionCountLabel_one": "{{count}} session",
+    "sessionCountLabel_other": "{{count}} sessions"
   },
   "app": {
     "title": "CloudCLI",
     "subtitle": "AI coding assistant interface"
+  },
+  "sections": {
+    "projects": "Projects",
+    "recent": "Recent"
   },
   "sessions": {
     "title": "Sessions",
@@ -51,7 +57,8 @@
     "save": "Save",
     "cancel": "Cancel",
     "clearSearch": "Clear search",
-    "openCommandPalette": "Open command palette"
+    "openCommandPalette": "Open command palette",
+    "pinToProject": "Pin as project"
   },
   "navigation": {
     "chat": "Chat",
@@ -71,7 +78,8 @@
     "rename": "Rename",
     "joinCommunity": "Join Community",
     "reportIssue": "Report Issue",
-    "starOnGithub": "Star on GitHub"
+    "starOnGithub": "Star on GitHub",
+    "newConversation": "New Chat"
   },
   "branding": {
     "openSource": "Open Source"
@@ -145,5 +153,8 @@
   },
   "archived": {
     "title": "Archive"
+  },
+  "footer": {
+    "guest": "Account"
   }
 }

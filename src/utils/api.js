@@ -127,6 +127,12 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(projectData),
     }),
+  // Get-or-creates the always-available default workspace project so a "New Chat"
+  // action never depends on the user first selecting or creating a project.
+  ensureDefaultProject: () =>
+    authenticatedFetch('/api/projects/ensure-default', {
+      method: 'POST',
+    }),
   migrateLegacyProjectStars: (projectIds) =>
     authenticatedFetch('/api/projects/migrate-legacy-stars', {
       method: 'POST',

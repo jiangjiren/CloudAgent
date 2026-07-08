@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { Archive, Check, ChevronDown, ChevronRight, Edit3, MoreHorizontal, SquarePen, Star, Trash2, X } from 'lucide-react';
+import { Archive, Check, ChevronDown, ChevronRight, Edit3, Folder, MoreHorizontal, SquarePen, Star, Trash2, X } from 'lucide-react';
 import type { TFunction } from 'i18next';
 
 import { cn } from '../../../../lib/utils';
 import type { Project, ProjectSession, LLMProvider } from '../../../../types/app';
 import type { MCPServerStatus, SessionWithProvider } from '../../types/types';
-import { getTaskIndicatorStatus } from '../../utils/utils';
 
-import TaskIndicator from './TaskIndicator';
 import SidebarProjectSessions from './SidebarProjectSessions';
 
 type SidebarProjectItemProps = {
@@ -193,8 +191,6 @@ export default function SidebarProjectItem({
   currentTime,
   editingSession,
   editingSessionName,
-  tasksEnabled,
-  mcpServerStatus,
   onEditingNameChange,
   onToggleProject,
   onProjectSelect,
@@ -218,7 +214,6 @@ export default function SidebarProjectItem({
   // after the projectName → projectId migration.
   const isSelected = selectedProject?.projectId === project.projectId;
   const isEditing = editingProject === project.projectId;
-  const taskStatus = getTaskIndicatorStatus(project, mcpServerStatus);
 
   const toggleProject = () => onToggleProject(project.projectId);
   const toggleStarProject = () => onToggleStarProject(project.projectId);
@@ -242,12 +237,12 @@ export default function SidebarProjectItem({
 
   return (
     <div className={cn('md:space-y-1', isDeleting && 'opacity-50 pointer-events-none')}>
-      <div className="md:group group">
+      <div className="group">
         <div className="md:hidden">
           <div
             className={cn(
-              'p-3 mx-3 my-1 rounded-lg bg-card border border-border/50 active:scale-[0.98] transition-all duration-150',
-              isSelected && 'bg-primary/5 border-primary/20',
+              'mx-3 my-0.5 rounded-lg px-2 py-2 transition-all duration-150 active:scale-[0.98]',
+              isSelected ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/50',
             )}
             onClick={toggleProject}
           >
@@ -269,6 +264,7 @@ export default function SidebarProjectItem({
                     <ChevronRight className="h-4 w-4" />
                   )}
                 </button>
+                <Folder className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
 
                 <div className="min-w-0 flex-1">
                   {isEditing ? (
@@ -297,24 +293,7 @@ export default function SidebarProjectItem({
                       }}
                     />
                   ) : (
-                    <>
-                      <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                        <h3 className="truncate text-sm font-medium text-foreground">{project.displayName}</h3>
-                        {isStarred && (
-                          <Star
-                            className="h-3 w-3 flex-shrink-0 fill-yellow-500 text-yellow-500"
-                            aria-label={t('projects.starred')}
-                          />
-                        )}
-                        {tasksEnabled && (
-                          <TaskIndicator
-                            status={taskStatus}
-                            size="xs"
-                            className="ml-2 hidden flex-shrink-0 md:inline-flex"
-                          />
-                        )}
-                      </div>
-                    </>
+                    <h3 className="truncate text-sm font-medium text-foreground">{project.displayName}</h3>
                   )}
                 </div>
               </div>
@@ -378,7 +357,7 @@ export default function SidebarProjectItem({
           role="button"
           tabIndex={0}
           className={cn(
-            'hidden md:flex w-full cursor-pointer items-center justify-between rounded-md p-2 h-auto text-sm font-normal transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+            'hidden h-11 w-full cursor-pointer items-center justify-between rounded-md px-1.5 text-sm font-normal transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:flex',
             isSelected && 'bg-accent text-accent-foreground',
           )}
           onClick={selectAndToggleProject}
@@ -392,7 +371,7 @@ export default function SidebarProjectItem({
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <button
               type="button"
-              className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
               onClick={(event) => {
                 event.stopPropagation();
                 toggleProject();
@@ -406,53 +385,40 @@ export default function SidebarProjectItem({
                 <ChevronRight className="h-4 w-4" />
               )}
             </button>
+            <Folder className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
             <div className="min-w-0 flex-1 text-left">
               {isEditing ? (
-                <div className="space-y-1">
-                  <input
-                    type="text"
-                    value={editingName}
-                    onChange={(event) => onEditingNameChange(event.target.value)}
-                    className="w-full rounded border border-border bg-background px-2 py-1 text-sm text-foreground focus:ring-2 focus:ring-primary/20"
-                    placeholder={t('projects.projectNamePlaceholder')}
-                    autoFocus
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        saveProjectName();
-                      }
-                      if (event.key === 'Escape') {
-                        onCancelEditingProject();
-                      }
-                    }}
-                  />
-                  <div className="truncate text-xs text-muted-foreground" title={project.fullPath}>
-                    {project.fullPath}
-                  </div>
-                </div>
+                <input
+                  type="text"
+                  value={editingName}
+                  onChange={(event) => onEditingNameChange(event.target.value)}
+                  className="w-full rounded border border-border bg-background px-2 py-1 text-sm text-foreground focus:ring-2 focus:ring-primary/20"
+                  placeholder={t('projects.projectNamePlaceholder')}
+                  autoFocus
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      saveProjectName();
+                    }
+                    if (event.key === 'Escape') {
+                      onCancelEditingProject();
+                    }
+                  }}
+                />
               ) : (
-                <div>
-                  <div className="flex min-w-0 items-center gap-1.5">
-                    <div className="truncate text-sm font-semibold text-foreground" title={project.displayName}>
-                      {project.displayName}
-                    </div>
-                    {isStarred && (
-                      <Star
-                        className="h-3 w-3 flex-shrink-0 fill-yellow-500 text-yellow-500"
-                        aria-label={t('projects.starred')}
-                      />
-                    )}
-                  </div>
-                  {project.fullPath !== project.displayName && (
-                    <div className="truncate text-xs text-muted-foreground opacity-60" title={project.fullPath}>
-                      {project.fullPath.length > 25 ? `...${project.fullPath.slice(-22)}` : project.fullPath}
-                    </div>
-                  )}
+                <div className="truncate text-sm font-medium text-foreground" title={project.displayName}>
+                  {project.displayName}
                 </div>
               )}
             </div>
           </div>
 
-          <div className="flex flex-shrink-0 items-center gap-1">
+          <div
+            className={cn(
+              'flex flex-shrink-0 items-center gap-1 transition-opacity',
+              !isEditing &&
+                'pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100',
+            )}
+          >
             {isEditing ? (
               <>
                 <div

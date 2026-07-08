@@ -17,11 +17,17 @@
     "projects": "progetti",
     "noMatchingProjects": "Nessun progetto corrispondente",
     "tryDifferentSearch": "Prova a modificare il termine di ricerca",
-    "runClaudeCli": "Esegui Claude CLI in una directory di progetto per iniziare"
+    "runClaudeCli": "Esegui Claude CLI in una directory di progetto per iniziare",
+    "sessionCountLabel_one": "{{count}} sessione",
+    "sessionCountLabel_other": "{{count}} sessioni"
   },
   "app": {
     "title": "CloudCLI",
     "subtitle": "Interfaccia assistente di programmazione AI"
+  },
+  "sections": {
+    "projects": "Progetti",
+    "recent": "Recenti"
   },
   "sessions": {
     "title": "Sessioni",
@@ -49,7 +55,8 @@
     "save": "Salva",
     "cancel": "Annulla",
     "clearSearch": "Cancella ricerca",
-    "openCommandPalette": "Apri tavolozza comandi"
+    "openCommandPalette": "Apri tavolozza comandi",
+    "pinToProject": "Aggiungi come progetto"
   },
   "navigation": {
     "chat": "Chat",
@@ -69,7 +76,8 @@
     "rename": "Rinomina",
     "joinCommunity": "Unisciti alla community",
     "reportIssue": "Segnala problema",
-    "starOnGithub": "Metti stella su GitHub"
+    "starOnGithub": "Metti stella su GitHub",
+    "newConversation": "Nuova chat"
   },
   "branding": {
     "openSource": "Open Source"
@@ -133,5 +141,8 @@
     "deleteAllData": "Elimina tutti i dati permanentemente",
     "allConversationsDeleted": "Il progetto verrà rimosso dalla barra laterale. I tuoi file, memorie e dati delle sessioni verranno preservati.",
     "cannotUndo": "Puoi riaggiungerlo in seguito."
+  },
+  "footer": {
+    "guest": "Account"
   }
 }

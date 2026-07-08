@@ -1,7 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import type { MouseEvent, MutableRefObject } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Eye, FolderTree } from 'lucide-react';
+
 import type { CodeEditorFile } from '../types/types';
+import type { Project } from '../../../types/app';
+
 import CodeEditor from './CodeEditor';
+import EditorSidebarFileBrowser from './subcomponents/EditorSidebarFileBrowser';
 
 type EditorSidebarProps = {
   editingFile: CodeEditorFile | null;
@@ -14,7 +20,9 @@ type EditorSidebarProps = {
   onResizeStart: (event: MouseEvent<HTMLDivElement>) => void;
   onCloseEditor: () => void;
   onToggleEditorExpand: () => void;
+  onSelectFile: (filePath: string) => void;
   projectPath?: string;
+  selectedProject?: Project | null;
   fillSpace?: boolean;
 };
 
@@ -34,10 +42,14 @@ export default function EditorSidebar({
   onResizeStart,
   onCloseEditor,
   onToggleEditorExpand,
+  onSelectFile,
   projectPath,
+  selectedProject,
   fillSpace,
 }: EditorSidebarProps) {
+  const { t } = useTranslation('codeEditor');
   const [poppedOut, setPoppedOut] = useState(false);
+  const [panelView, setPanelView] = useState<'preview' | 'files'>('preview');
   const containerRef = useRef<HTMLDivElement>(null);
   const [effectiveWidth, setEffectiveWidth] = useState(editorWidth);
 
@@ -122,18 +134,56 @@ export default function EditorSidebar({
       )}
 
       <div
-        className={`h-full overflow-hidden border-l border-gray-200 dark:border-gray-700 ${useFlexLayout ? 'min-w-0 flex-1' : 'flex-shrink-0'}`}
+        className={`flex h-full flex-col overflow-hidden border-l border-gray-200 dark:border-gray-700 ${useFlexLayout ? 'min-w-0 flex-1' : 'flex-shrink-0'}`}
         style={useFlexLayout ? undefined : { width: `${effectiveWidth}px`, minWidth: `${MIN_EDITOR_WIDTH}px` }}
       >
-        <CodeEditor
-          file={editingFile}
-          onClose={onCloseEditor}
-          projectPath={projectPath}
-          isSidebar
-          isExpanded={editorExpanded}
-          onToggleExpand={onToggleEditorExpand}
-          onPopOut={() => setPoppedOut(true)}
-        />
+        <div className="flex flex-shrink-0 items-center gap-1 border-b border-border bg-muted/30 px-2 py-1">
+          <button
+            type="button"
+            onClick={() => setPanelView('preview')}
+            className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+              panelView === 'preview'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Eye className="h-3.5 w-3.5" />
+            {t('sidebarTabs.preview')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setPanelView('files')}
+            className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+              panelView === 'files'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <FolderTree className="h-3.5 w-3.5" />
+            {t('sidebarTabs.files')}
+          </button>
+        </div>
+
+        <div className="flex min-h-0 flex-1">
+          {panelView === 'files' && (
+            <EditorSidebarFileBrowser
+              selectedProject={selectedProject ?? null}
+              activePath={editingFile.path}
+              onSelectFile={onSelectFile}
+            />
+          )}
+          <div className="min-w-0 flex-1">
+            <CodeEditor
+              file={editingFile}
+              onClose={onCloseEditor}
+              projectPath={projectPath}
+              isSidebar
+              isExpanded={editorExpanded}
+              onToggleExpand={onToggleEditorExpand}
+              onPopOut={() => setPoppedOut(true)}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

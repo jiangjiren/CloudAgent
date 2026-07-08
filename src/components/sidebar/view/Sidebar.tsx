@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useDeviceSettings } from '../../../hooks/useDeviceSettings';
@@ -27,6 +27,7 @@ function Sidebar({
   onProjectSelect,
   onSessionSelect,
   onNewSession,
+  onNewConversation,
   onSessionDelete,
   onLoadMoreSessions,
   onProjectDelete,
@@ -136,9 +137,27 @@ function Sidebar({
     void paletteOps.refreshProjects();
   };
 
+  // The default workspace project backs the project-independent "New Chat"
+  // entry point and must never appear as a project a user manages directly
+  // (rename/star/archive/delete) — it's surfaced only through its sessions in
+  // the "Recent" list below.
+  const visibleProjects = useMemo(() => projects.filter((project) => !project.isDefault), [projects]);
+  const visibleFilteredProjects = useMemo(
+    () => filteredProjects.filter((project) => !project.isDefault),
+    [filteredProjects],
+  );
+
+  const handleRecentSessionSelect = useCallback(
+    (session: Parameters<typeof handleSessionClick>[0], project: Project) => {
+      handleProjectSelect(project);
+      handleSessionClick(session, project.projectId);
+    },
+    [handleProjectSelect, handleSessionClick],
+  );
+
   const projectListProps: SidebarProjectListProps = {
-    projects,
-    filteredProjects,
+    projects: visibleProjects,
+    filteredProjects: visibleFilteredProjects,
     selectedProject,
     selectedSession,
     isLoading,
@@ -207,9 +226,8 @@ function Sidebar({
 
       {isSidebarCollapsed ? (
         <SidebarCollapsed
-          selectedProject={selectedProject}
           onExpand={handleExpandSidebar}
-          onNewSession={onNewSession}
+          onNewConversation={onNewConversation}
           onShowSettings={onShowSettings}
           t={t}
         />
@@ -275,9 +293,15 @@ function Sidebar({
               }
             }}
             onCreateProject={() => setShowNewProject(true)}
+            onNewConversation={onNewConversation}
             onCollapseSidebar={handleCollapseSidebar}
             onShowSettings={onShowSettings}
             projectListProps={projectListProps}
+            selectedSession={selectedSession}
+            currentTime={currentTime}
+            isProjectStarred={isProjectStarred}
+            onRecentSessionSelect={handleRecentSessionSelect}
+            onPinProject={toggleStarProject}
             t={t}
           />
         </>

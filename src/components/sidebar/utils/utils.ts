@@ -124,6 +124,59 @@ export const getAllSessions = (project: Project): SessionWithProvider[] => {
   );
 };
 
+export type RecentSessionEntry = {
+  session: SessionWithProvider;
+  project: Project;
+};
+
+/**
+ * Flattens sessions across every project (including the default workspace) into
+ * one list sorted by most-recent activity, for the sidebar's "Recent" section.
+ * Each session is tagged with `__projectId` so click handlers can resolve the
+ * owning project without a separate lookup.
+ */
+export const collectRecentSidebarSessions = (
+  projects: Project[],
+  limit = 20,
+): RecentSessionEntry[] => {
+  return projects
+    .flatMap((project) =>
+      getAllSessions(project).map((session) => ({
+        session: { ...session, __projectId: project.projectId },
+        project,
+      })),
+    )
+    .sort((a, b) => getSessionDate(b.session).getTime() - getSessionDate(a.session).getTime())
+    .slice(0, limit);
+};
+
+/**
+ * Compact relative-age label shared by sidebar rows that render session
+ * timestamps (`<1m`, `5m`, `3hr`, `2d`).
+ */
+export const formatCompactAge = (dateString: string, currentTime: Date): string => {
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const diffInMinutes = Math.floor(Math.max(0, currentTime.getTime() - date.getTime()) / (1000 * 60));
+  if (diffInMinutes < 1) {
+    return '<1m';
+  }
+
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes}m`;
+  }
+
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) {
+    return `${diffInHours}hr`;
+  }
+
+  return `${Math.floor(diffInHours / 24)}d`;
+};
+
 export const getProjectLastActivity = (project: Project): Date => {
   const sessions = getAllSessions(project);
   if (sessions.length === 0) {

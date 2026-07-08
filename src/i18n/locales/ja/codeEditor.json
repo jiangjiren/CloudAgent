@@ -34,5 +34,18 @@
   "binaryFile": {
     "title": "バイナリファイル",
     "message": "ファイル \"{{fileName}}\" はバイナリファイルのため、テキストエディタで表示できません。"
+  },
+  "sidebarTabs": {
+    "preview": "プレビュー",
+    "files": "ファイル"
+  },
+  "fileBrowser": {
+    "title": "ファイル",
+    "loading": "ファイルを読み込んでいます…",
+    "empty": "ファイルはまだありません"
+  },
+  "imagePreview": {
+    "loading": "画像を読み込んでいます…",
+    "error": "画像を読み込めませんでした"
   }
 }

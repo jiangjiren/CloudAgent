@@ -3,6 +3,7 @@ import path from 'node:path';
 
 import { projectsDb, sessionsDb } from '@/modules/database/index.js';
 import { sessionSynchronizerService } from '@/modules/providers/index.js';
+import { getDefaultWorkspacePath } from '@/modules/projects/services/project-management.service.js';
 import { WS_OPEN_STATE, connectedClients } from '@/modules/websocket/index.js';
 import type { RealtimeClientConnection } from '@/shared/types.js';
 import { AppError } from '@/shared/utils.js';
@@ -30,6 +31,9 @@ export type ProjectListItem = {
   displayName: string;
   fullPath: string;
   isStarred: boolean;
+  // Computed server-side by comparing the project's path against the default
+  // workspace path; the frontend must never hard-code this path itself.
+  isDefault: boolean;
   sessions: SessionSummary[];
   cursorSessions: SessionSummary[];
   codexSessions: SessionSummary[];
@@ -222,6 +226,7 @@ export async function getProjectsWithSessions(
   const totalProjects = projectRows.length;
   const projects: ProjectListItem[] = [];
   let processedProjects = 0;
+  const defaultWorkspacePath = getDefaultWorkspacePath();
 
   for (const row of projectRows) {
     processedProjects += 1;
@@ -252,6 +257,7 @@ export async function getProjectsWithSessions(
       displayName,
       fullPath: projectPath,
       isStarred: Boolean(row.isStarred),
+      isDefault: projectPath === defaultWorkspacePath,
       sessions: sessionsPage.sessionsByProvider.claude,
       cursorSessions: sessionsPage.sessionsByProvider.cursor,
       codexSessions: sessionsPage.sessionsByProvider.codex,
@@ -293,6 +299,7 @@ export async function getArchivedProjectsWithSessions(
   }>;
 
   const archivedProjects: ArchivedProjectListItem[] = [];
+  const defaultWorkspacePath = getDefaultWorkspacePath();
 
   for (const row of projectRows) {
     const displayName =
@@ -308,6 +315,7 @@ export async function getArchivedProjectsWithSessions(
       displayName,
       fullPath: row.project_path,
       isStarred: Boolean(row.isStarred),
+      isDefault: row.project_path === defaultWorkspacePath,
       isArchived: true,
       sessions: sessionsPage.sessionsByProvider.claude,
       cursorSessions: sessionsPage.sessionsByProvider.cursor,

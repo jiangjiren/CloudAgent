@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { createProject, updateProjectDisplayName } from '@/modules/projects/services/project-management.service.js';
+import { createProject, ensureDefaultProject, updateProjectDisplayName } from '@/modules/projects/services/project-management.service.js';
 import { startCloneProject } from '@/modules/projects/services/project-clone.service.js';
 import { getProjectTaskMaster } from '@/modules/projects/services/projects-has-taskmaster.service.js';
 import { AppError, asyncHandler, createApiSuccessResponse } from '@/shared/utils.js';
@@ -136,6 +136,19 @@ router.post(
           ? 'Archived project path reused successfully'
           : 'Project created successfully',
     });
+  }),
+);
+
+/**
+ * Get-or-creates the always-available "default workspace" project so the sidebar's
+ * project-independent "New Chat" entry point works without the user picking (or knowing
+ * about) a project first. Idempotent: repeated calls resolve to the same project row.
+ */
+router.post(
+  '/ensure-default',
+  asyncHandler(async (_req, res) => {
+    const result = await ensureDefaultProject();
+    res.json({ success: true, project: result.project });
   }),
 );
 

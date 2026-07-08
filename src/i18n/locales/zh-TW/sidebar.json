@@ -17,11 +17,17 @@
     "projects": "專案",
     "noMatchingProjects": "找不到符合的專案",
     "tryDifferentSearch": "嘗試調整您的搜尋詞",
-    "runClaudeCli": "在專案目錄中執行 Claude CLI 以開始使用"
+    "runClaudeCli": "在專案目錄中執行 Claude CLI 以開始使用",
+    "sessionCountLabel_one": "{{count}} 個會話",
+    "sessionCountLabel_other": "{{count}} 個會話"
   },
   "app": {
     "title": "CloudCLI",
     "subtitle": "AI 程式開發助手"
+  },
+  "sections": {
+    "projects": "專案",
+    "recent": "最近"
   },
   "sessions": {
     "title": "工作階段",
@@ -48,7 +54,8 @@
     "save": "儲存",
     "cancel": "取消",
     "clearSearch": "清除搜尋",
-    "openCommandPalette": "開啟指令面板"
+    "openCommandPalette": "開啟指令面板",
+    "pinToProject": "固定為專案"
   },
   "navigation": {
     "chat": "聊天",
@@ -68,7 +75,8 @@
     "rename": "重新命名",
     "joinCommunity": "加入社群",
     "reportIssue": "回報問題",
-    "starOnGithub": "在 GitHub 上加星"
+    "starOnGithub": "在 GitHub 上加星",
+    "newConversation": "新對話"
   },
   "branding": {
     "openSource": "開源"
@@ -132,5 +140,8 @@
     "deleteAllData": "永久刪除所有資料",
     "allConversationsDeleted": "專案將從側邊欄中移除。您的檔案、記憶和工作階段資料將會保留。",
     "cannotUndo": "您可以稍後重新新增此專案。"
+  },
+  "footer": {
+    "guest": "帳戶"
   }
 }

@@ -44,6 +44,10 @@ export type SidebarProps = {
   onProjectSelect: (project: Project) => void;
   onSessionSelect: (session: ProjectSession) => void;
   onNewSession: (project: Project) => void;
+  // Project-independent "New Chat" entry point: get-or-creates the default
+  // workspace project, then starts a new session there. Works with zero
+  // projects and no `selectedProject`.
+  onNewConversation: () => void | Promise<void>;
   onSessionDelete?: (sessionId: string) => void;
   onLoadMoreSessions?: (projectId: string) => Promise<void> | void;
   // `projectId` is the DB identifier; the sidebar hands it back to the parent

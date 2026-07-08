@@ -1,4 +1,4 @@
-import { Folder, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import type { TFunction } from 'i18next';
 import type { LoadingProgress } from '../../../../types/app';
 
@@ -7,6 +7,7 @@ type SidebarProjectsStateProps = {
   loadingProgress: LoadingProgress | null;
   projectsCount: number;
   filteredProjectsCount: number;
+  onCreateProject: () => void;
   t: TFunction;
 };
 
@@ -15,6 +16,7 @@ export default function SidebarProjectsState({
   loadingProgress,
   projectsCount,
   filteredProjectsCount,
+  onCreateProject,
   t,
 }: SidebarProjectsStateProps) {
   if (isLoading) {
@@ -53,12 +55,15 @@ export default function SidebarProjectsState({
 
   if (projectsCount === 0) {
     return (
-      <div className="px-4 py-12 text-center md:py-8">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-muted md:mb-3">
-          <Folder className="h-6 w-6 text-muted-foreground" />
-        </div>
-        <h3 className="mb-2 text-base font-medium text-foreground md:mb-1">{t('projects.noProjects')}</h3>
-        <p className="text-sm text-muted-foreground">{t('projects.runClaudeCli')}</p>
+      <div className="px-3 py-2.5 text-center">
+        <div className="text-sm text-muted-foreground">{t('projects.noProjects')}</div>
+        <button
+          type="button"
+          onClick={onCreateProject}
+          className="mt-2 inline-flex h-8 items-center justify-center rounded-lg bg-muted/70 px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+        >
+          {t('projects.newProject')}
+        </button>
       </div>
     );
   }

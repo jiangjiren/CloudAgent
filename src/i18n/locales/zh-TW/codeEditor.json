@@ -34,5 +34,18 @@
   "binaryFile": {
     "title": "二進位檔案",
     "message": "檔案「{{fileName}}」無法在文字編輯器中顯示，因為它是二進位檔案。"
+  },
+  "sidebarTabs": {
+    "preview": "預覽",
+    "files": "檔案"
+  },
+  "fileBrowser": {
+    "title": "檔案",
+    "loading": "正在載入檔案…",
+    "empty": "尚無檔案"
+  },
+  "imagePreview": {
+    "loading": "正在載入圖片…",
+    "error": "圖片載入失敗"
   }
 }

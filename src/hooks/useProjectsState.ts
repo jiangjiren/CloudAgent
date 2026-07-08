@@ -290,6 +290,7 @@ export function useProjectsState({
 
   const loadingProgressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastHandledMessageRef = useRef<AppSocketMessage | null>(null);
+  const defaultProjectEnsureInFlightRef = useRef(false);
 
   const fetchProjects = useCallback(async ({ showLoadingState = true }: FetchProjectsOptions = {}) => {
     try {
@@ -375,6 +376,56 @@ export function useProjectsState({
   useEffect(() => {
     void fetchProjects();
   }, [fetchProjects]);
+
+  useEffect(() => {
+    if (isLoadingProjects || sessionId || selectedProject || defaultProjectEnsureInFlightRef.current) {
+      return;
+    }
+
+    const existingDefaultProject = projects.find((project) => project.isDefault);
+    if (existingDefaultProject) {
+      setActiveTab('chat');
+      setSelectedProject(existingDefaultProject);
+      return;
+    }
+
+    defaultProjectEnsureInFlightRef.current = true;
+    void (async () => {
+      try {
+        const response = await api.ensureDefaultProject();
+        if (!response.ok) {
+          console.error('[useProjectsState] Failed to ensure default project on home:', response.status);
+          return;
+        }
+
+        const payload = (await response.json()) as { success?: boolean; project?: Project };
+        const defaultProject = payload.project;
+        if (!defaultProject) {
+          return;
+        }
+
+        setProjects((previousProjects) => {
+          const existingProjectIndex = previousProjects.findIndex(
+            (project) => project.projectId === defaultProject.projectId,
+          );
+          if (existingProjectIndex === -1) {
+            return [...previousProjects, defaultProject];
+          }
+
+          return previousProjects.map((project, index) =>
+            index === existingProjectIndex ? { ...project, ...defaultProject } : project,
+          );
+        });
+        setActiveTab('chat');
+        setSelectedProject(defaultProject);
+        await refreshProjectsSilently();
+      } catch (error) {
+        console.error('[useProjectsState] Error ensuring default project on home:', error);
+      } finally {
+        defaultProjectEnsureInFlightRef.current = false;
+      }
+    })();
+  }, [isLoadingProjects, projects, refreshProjectsSilently, selectedProject, sessionId]);
 
   useEffect(() => {
     if (!selectedProject?.projectId) {
@@ -701,6 +752,35 @@ export function useProjectsState({
     [isMobile, navigate],
   );
 
+  // Project-independent "New Chat" entry point: get-or-creates the default workspace
+  // project on the backend, refreshes the sidebar's project list only when that project
+  // wasn't already known locally, then starts a new session exactly like `handleNewSession`.
+  // This must work with zero projects and no `selectedProject`.
+  const handleNewConversation = useCallback(async () => {
+    try {
+      const response = await api.ensureDefaultProject();
+      if (!response.ok) {
+        console.error('[useProjectsState] Failed to ensure default project:', response.status);
+        return;
+      }
+
+      const payload = (await response.json()) as { success?: boolean; project?: Project };
+      const defaultProject = payload.project;
+      if (!defaultProject) {
+        return;
+      }
+
+      const isKnownProject = projects.some((project) => project.projectId === defaultProject.projectId);
+      if (!isKnownProject) {
+        await refreshProjectsSilently();
+      }
+
+      handleNewSession(defaultProject);
+    } catch (error) {
+      console.error('[useProjectsState] Error starting a new conversation:', error);
+    }
+  }, [projects, refreshProjectsSilently, handleNewSession]);
+
   const handleSessionDelete = useCallback(
     (sessionIdToDelete: string) => {
       if (selectedSession?.id === sessionIdToDelete) {
@@ -871,6 +951,7 @@ export function useProjectsState({
       onProjectSelect: handleProjectSelect,
       onSessionSelect: handleSessionSelect,
       onNewSession: handleNewSession,
+      onNewConversation: handleNewConversation,
       onSessionDelete: handleSessionDelete,
       onLoadMoreSessions: loadMoreProjectSessions,
       onProjectDelete: handleProjectDelete,
@@ -885,6 +966,7 @@ export function useProjectsState({
     }),
     [
       handleNewSession,
+      handleNewConversation,
       handleProjectDelete,
       handleProjectSelect,
       handleSessionDelete,

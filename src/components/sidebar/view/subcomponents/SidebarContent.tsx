@@ -1,17 +1,19 @@
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Archive, ChevronDown, ChevronRight, Folder, MessageSquare, RotateCcw, Search, Trash2 } from 'lucide-react';
 import type { TFunction } from 'i18next';
 
 import { ScrollArea } from '../../../../shared/view/ui';
-import type { Project } from '../../../../types/app';
+import type { Project, ProjectSession } from '../../../../types/app';
 import type { ConversationSearchResults, SearchProgress } from '../../hooks/useSidebarController';
-import type { ArchivedProjectListItem, ArchivedSessionListItem, SidebarSearchMode } from '../../types/types';
+import type { ArchivedProjectListItem, ArchivedSessionListItem, SessionWithProvider, SidebarSearchMode } from '../../types/types';
 import SessionProviderLogo from '../../../llm-logo-provider/SessionProviderLogo';
-import { getAllSessions } from '../../utils/utils';
+import { collectRecentSidebarSessions, getAllSessions } from '../../utils/utils';
 
 import SidebarFooter from './SidebarFooter';
 import SidebarHeader from './SidebarHeader';
 import SidebarProjectList, { type SidebarProjectListProps } from './SidebarProjectList';
+import SidebarProjectsSection from './SidebarProjectsSection';
+import SidebarRecentSessions from './SidebarRecentSessions';
 
 function HighlightedSnippet({ snippet, highlights }: { snippet: string; highlights: { start: number; end: number }[] }) {
   const parts: ReactNode[] = [];
@@ -532,9 +534,15 @@ type SidebarContentProps = {
   onDeleteArchivedSession: (session: ArchivedSessionListItem) => void;
   onConversationResultClick: (projectId: string | null, sessionId: string, provider: string, messageTimestamp?: string | null, messageSnippet?: string | null) => void;
   onCreateProject: () => void;
+  onNewConversation: () => void | Promise<void>;
   onCollapseSidebar: () => void;
   onShowSettings: () => void;
   projectListProps: SidebarProjectListProps;
+  selectedSession: ProjectSession | null;
+  currentTime: Date;
+  isProjectStarred: (projectId: string) => boolean;
+  onRecentSessionSelect: (session: SessionWithProvider, project: Project) => void;
+  onPinProject: (projectId: string) => void;
   t: TFunction;
 };
 
@@ -561,12 +569,21 @@ export default function SidebarContent({
   onDeleteArchivedSession,
   onConversationResultClick,
   onCreateProject,
+  onNewConversation,
   onCollapseSidebar,
   onShowSettings,
   projectListProps,
+  selectedSession,
+  currentTime,
+  isProjectStarred,
+  onRecentSessionSelect,
+  onPinProject,
   t,
 }: SidebarContentProps) {
   const [isArchiveExpanded, setIsArchiveExpanded] = useState(false);
+  const [isProjectsExpanded, setIsProjectsExpanded] = useState(false);
+  const [isRecentExpanded, setIsRecentExpanded] = useState(true);
+  const recentSessionEntries = useMemo(() => collectRecentSidebarSessions(projects, 20), [projects]);
   const searchQuery = searchFilter.trim();
   const hasSearchQuery = searchQuery.length > 0;
   const groupedArchivedSessions = groupArchivedSessionsByProject(archivedSessions);
@@ -611,7 +628,7 @@ export default function SidebarContent({
         onClearSearchFilter={onClearSearchFilter}
         searchMode={searchMode}
         onSearchModeChange={onSearchModeChange}
-        onCreateProject={onCreateProject}
+        onNewConversation={onNewConversation}
         onCollapseSidebar={onCollapseSidebar}
         t={t}
       />
@@ -730,7 +747,28 @@ export default function SidebarContent({
             )}
           </div>
         ) : (
-          <SidebarProjectList {...projectListProps} />
+          <div className="space-y-3 pb-2">
+            <SidebarProjectsSection
+              isExpanded={isProjectsExpanded}
+              onToggleExpanded={() => setIsProjectsExpanded((current) => !current)}
+              projectCount={projectListProps.filteredProjects.length}
+              onCreateProject={onCreateProject}
+              projectListProps={projectListProps}
+              t={t}
+            />
+            <SidebarRecentSessions
+              isExpanded={isRecentExpanded}
+              onToggleExpanded={() => setIsRecentExpanded((current) => !current)}
+              entries={recentSessionEntries}
+              selectedSession={selectedSession}
+              currentTime={currentTime}
+              isProjectStarred={isProjectStarred}
+              onSessionSelect={onRecentSessionSelect}
+              onPinProject={onPinProject}
+              onCreateProject={onCreateProject}
+              t={t}
+            />
+          </div>
         )}
       </ScrollArea>
 

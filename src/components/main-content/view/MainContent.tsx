@@ -212,7 +212,9 @@ function MainContent({
           onResizeStart={handleResizeStart}
           onCloseEditor={handleCloseEditor}
           onToggleEditorExpand={handleToggleEditorExpand}
+          onSelectFile={handleFileOpen}
           projectPath={selectedProject.path}
+          selectedProject={selectedProject}
           fillSpace={activeTab === 'files'}
         />
       </div>

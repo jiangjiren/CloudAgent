@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
+
 import { api } from '../../../utils/api';
 import type { CodeEditorFile } from '../types/types';
 import { isBinaryFile } from '../utils/binaryFile';
+import { isImageFile } from '../../file-tree/utils/fileTreeUtils';
 
 type UseCodeEditorDocumentParams = {
   file: CodeEditorFile;
@@ -23,6 +25,7 @@ export const useCodeEditorDocument = ({ file, projectPath }: UseCodeEditorDocume
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isBinary, setIsBinary] = useState(false);
+  const [isImage, setIsImage] = useState(false);
   // `fileProjectId` is the DB primary key passed down from the editor sidebar;
   // the fallback to `projectPath` preserves older callers that didn't yet
   // propagate the identifier.
@@ -37,6 +40,14 @@ export const useCodeEditorDocument = ({ file, projectPath }: UseCodeEditorDocume
       try {
         setLoading(true);
         setIsBinary(false);
+        setIsImage(false);
+
+        // Images render via <img>, not the text/binary-placeholder paths.
+        if (isImageFile(file.name)) {
+          setIsImage(true);
+          setLoading(false);
+          return;
+        }
 
         // Check if file is binary by extension
         if (isBinaryFile(file.name)) {
@@ -111,7 +122,38 @@ export const useCodeEditorDocument = ({ file, projectPath }: UseCodeEditorDocume
     }
   }, [content, filePath, fileProjectId]);
 
-  const handleDownload = useCallback(() => {
+  const handleDownload = useCallback(async () => {
+    // Image content isn't loaded into `content` (it renders via <img>), so
+    // fetch the raw bytes instead of downloading an empty text/plain blob.
+    if (isImage) {
+      try {
+        if (!fileProjectId) {
+          throw new Error('Missing project identifier');
+        }
+
+        const response = await api.readFile(fileProjectId, filePath);
+        if (!response.ok) {
+          throw new Error(`Failed to load file: ${response.status} ${response.statusText}`);
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+
+        anchor.href = url;
+        anchor.download = file.name;
+
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Error downloading image:', error);
+      }
+      return;
+    }
+
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
@@ -124,7 +166,7 @@ export const useCodeEditorDocument = ({ file, projectPath }: UseCodeEditorDocume
     document.body.removeChild(anchor);
 
     URL.revokeObjectURL(url);
-  }, [content, file.name]);
+  }, [content, file.name, fileProjectId, filePath, isImage]);
 
   return {
     content,
@@ -134,6 +176,7 @@ export const useCodeEditorDocument = ({ file, projectPath }: UseCodeEditorDocume
     saveSuccess,
     saveError,
     isBinary,
+    isImage,
     handleSave,
     handleDownload,
   };

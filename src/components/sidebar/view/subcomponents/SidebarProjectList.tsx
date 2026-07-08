@@ -44,6 +44,7 @@ export type SidebarProjectListProps = {
     sessionTitle: string,
     provider: LLMProvider,
   ) => void;
+  onCreateProject?: () => void;
   onNewSession: (project: Project) => void;
   onEditingSessionNameChange: (value: string) => void;
   onStartEditingSession: (sessionId: string, initialName: string) => void;
@@ -84,6 +85,7 @@ export default function SidebarProjectList({
   onDeleteProject,
   onSessionSelect,
   onDeleteSession,
+  onCreateProject,
   onNewSession,
   onEditingSessionNameChange,
   onStartEditingSession,
@@ -97,6 +99,7 @@ export default function SidebarProjectList({
       loadingProgress={loadingProgress}
       projectsCount={projects.length}
       filteredProjectsCount={filteredProjects.length}
+      onCreateProject={onCreateProject ?? (() => undefined)}
       t={t}
     />
   );

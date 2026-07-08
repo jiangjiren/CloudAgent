@@ -59,6 +59,10 @@ export interface Project {
   fullPath: string;
   path?: string;
   isStarred?: boolean;
+  // Computed server-side: true when this project backs the always-available
+  // "default workspace" used by the project-independent "New Chat" entry point.
+  // Never hard-code this path on the frontend — the flag is the source of truth.
+  isDefault?: boolean;
   sessions?: ProjectSession[];
   cursorSessions?: ProjectSession[];
   codexSessions?: ProjectSession[];

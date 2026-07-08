@@ -17,11 +17,17 @@
     "projects": "プロジェクト",
     "noMatchingProjects": "一致するプロジェクトがありません",
     "tryDifferentSearch": "検索語を変えてお試しください",
-    "runClaudeCli": "プロジェクトディレクトリでClaude CLIを実行して始めましょう"
+    "runClaudeCli": "プロジェクトディレクトリでClaude CLIを実行して始めましょう",
+    "sessionCountLabel_one": "{{count}} 件のセッション",
+    "sessionCountLabel_other": "{{count}} 件のセッション"
   },
   "app": {
     "title": "CloudCLI",
     "subtitle": "AIコーディングアシスタント"
+  },
+  "sections": {
+    "projects": "プロジェクト",
+    "recent": "最近"
   },
   "sessions": {
     "title": "セッション",
@@ -48,7 +54,8 @@
     "activeSessionIndicator": "最近アクティブなセッション（過去10分以内）",
     "save": "保存",
     "cancel": "キャンセル",
-    "openCommandPalette": "コマンドパレットを開く"
+    "openCommandPalette": "コマンドパレットを開く",
+    "pinToProject": "プロジェクトとして固定"
   },
   "navigation": {
     "chat": "チャット",
@@ -68,7 +75,8 @@
     "rename": "名前の変更",
     "joinCommunity": "コミュニティに参加",
     "reportIssue": "問題を報告",
-    "starOnGithub": "GitHubでスター"
+    "starOnGithub": "GitHubでスター",
+    "newConversation": "新しいチャット"
   },
   "branding": {
     "openSource": "オープンソース"
@@ -119,5 +127,8 @@
     "deleteAllData": "すべてのデータを完全に削除",
     "allConversationsDeleted": "プロジェクトはサイドバーから除去されます。ファイル、メモリ、セッションデータは保持されます。",
     "cannotUndo": "後からプロジェクトを再追加できます。"
+  },
+  "footer": {
+    "guest": "アカウント"
   }
 }

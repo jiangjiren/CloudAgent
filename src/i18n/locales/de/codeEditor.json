@@ -34,5 +34,18 @@
   "binaryFile": {
     "title": "Binärdatei",
     "message": "Die Datei \"{{fileName}}\" kann im Texteditor nicht angezeigt werden, da es sich um eine Binärdatei handelt."
+  },
+  "sidebarTabs": {
+    "preview": "Vorschau",
+    "files": "Dateien"
+  },
+  "fileBrowser": {
+    "title": "Dateien",
+    "loading": "Dateien werden geladen…",
+    "empty": "Noch keine Dateien"
+  },
+  "imagePreview": {
+    "loading": "Bild wird geladen…",
+    "error": "Bild konnte nicht geladen werden"
   }
 }
