@@ -766,6 +766,13 @@ export default function SidebarContent({
               onSessionSelect={onRecentSessionSelect}
               onPinProject={onPinProject}
               onCreateProject={onCreateProject}
+              editingSession={projectListProps.editingSession}
+              editingSessionName={projectListProps.editingSessionName}
+              onEditingSessionNameChange={projectListProps.onEditingSessionNameChange}
+              onStartEditingSession={projectListProps.onStartEditingSession}
+              onCancelEditingSession={projectListProps.onCancelEditingSession}
+              onSaveEditingSession={projectListProps.onSaveEditingSession}
+              onDeleteSession={projectListProps.onDeleteSession}
               t={t}
             />
           </div>

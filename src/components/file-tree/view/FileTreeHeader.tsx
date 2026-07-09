@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import type { ChangeEvent } from 'react';
-import { ChevronDown, Eye, FileText, FolderPlus, List, Loader2, RefreshCw, Search, TableProperties, Upload, X } from 'lucide-react';
+import { ChevronDown, Eye, FileText, FolderPlus, List, Loader2, PanelRightClose, RefreshCw, Search, TableProperties, Upload, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button, Input } from '../../../shared/view/ui';
@@ -19,6 +19,8 @@ type FileTreeHeaderProps = {
   onUploadFiles?: (files: FileList) => void;
   onRefresh?: () => void;
   onCollapseAll?: () => void;
+  /** Collapses the hosting panel; rendered leftmost when provided. */
+  onCollapsePanel?: () => void;
   // Loading state
   loading?: boolean;
   operationLoading?: boolean;
@@ -36,6 +38,7 @@ export default function FileTreeHeader({
   onUploadFiles,
   onRefresh,
   onCollapseAll,
+  onCollapsePanel,
   loading,
   operationLoading,
   isUploading,
@@ -56,7 +59,21 @@ export default function FileTreeHeader({
     <div className="space-y-2 border-b border-border px-3 pb-2 pt-3">
       {/* Title and Toolbar */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-foreground">{t('fileTree.files')}</h3>
+        <div className="flex min-w-0 items-center gap-1">
+          {onCollapsePanel && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 flex-shrink-0 p-0"
+              onClick={onCollapsePanel}
+              title={t('fileTree.collapsePanel', 'Collapse panel')}
+              aria-label={t('fileTree.collapsePanel', 'Collapse panel')}
+            >
+              <PanelRightClose className="h-3.5 w-3.5" />
+            </Button>
+          )}
+          <h3 className="truncate text-sm font-medium text-foreground">{t('fileTree.files')}</h3>
+        </div>
         <div className="flex items-center gap-0.5">
           {/* Action buttons */}
           {onUploadFiles && (

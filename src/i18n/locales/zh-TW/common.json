@@ -94,7 +94,8 @@
     "createProjectDesktop": "點擊側邊欄中的資料夾圖示以建立新專案",
     "newSession": "新工作階段",
     "untitledSession": "未命名工作階段",
-    "projectFiles": "專案檔案"
+    "projectFiles": "專案檔案",
+    "resizeFilesPanel": "調整檔案面板寬度"
   },
   "welcome": {
     "backTitle": "接續上次的進度",
@@ -106,6 +107,7 @@
     "projects": "專案"
   },
   "fileTree": {
+    "collapsePanel": "收合面板",
     "loading": "正在載入檔案...",
     "files": "檔案",
     "simpleView": "簡易檢視",

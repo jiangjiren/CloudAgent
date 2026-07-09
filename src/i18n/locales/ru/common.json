@@ -94,7 +94,8 @@
     "createProjectDesktop": "Создайте новый проект, нажав на значок папки на боковой панели",
     "newSession": "Новый сеанс",
     "untitledSession": "Безымянный сеанс",
-    "projectFiles": "Файлы проекта"
+    "projectFiles": "Файлы проекта",
+    "resizeFilesPanel": "Изменить размер панели файлов"
   },
   "welcome": {
     "backTitle": "Продолжите с того места, где остановились",
@@ -106,6 +107,7 @@
     "projects": "Проекты"
   },
   "fileTree": {
+    "collapsePanel": "Свернуть панель",
     "loading": "Загрузка файлов...",
     "files": "Файлы",
     "simpleView": "Простой вид",

@@ -94,7 +94,8 @@
     "createProjectDesktop": "Erstell ein neues Projekt, indem du auf das Ordnersymbol in der Seitenleiste klickst",
     "newSession": "Neue Sitzung",
     "untitledSession": "Unbenannte Sitzung",
-    "projectFiles": "Projektdateien"
+    "projectFiles": "Projektdateien",
+    "resizeFilesPanel": "Dateibereich anpassen"
   },
   "welcome": {
     "backTitle": "Machen Sie dort weiter, wo Sie aufgehört haben",
@@ -106,6 +107,7 @@
     "projects": "Projekte"
   },
   "fileTree": {
+    "collapsePanel": "Panel einklappen",
     "loading": "Dateien werden geladen...",
     "files": "Dateien",
     "simpleView": "Einfache Ansicht",

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type Dispatch, type SetStateAction } from 'react';
 import { createPortal } from 'react-dom';
-import { MessageSquare, Folder, ClipboardCheck, ChevronDown, MoreHorizontal, type LucideIcon } from 'lucide-react';
+import { ClipboardCheck, ChevronDown, MoreHorizontal, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Tooltip, PillBar, Pill } from '../../../../shared/view/ui';
@@ -30,10 +30,7 @@ type PluginTab = {
   iconFile: string;
 };
 
-const BASE_TABS: BuiltInTab[] = [
-  { kind: 'builtin', id: 'chat',  labelKey: 'tabs.chat',  icon: MessageSquare },
-  { kind: 'builtin', id: 'files', labelKey: 'tabs.files', icon: Folder },
-];
+const BASE_TABS: BuiltInTab[] = [];
 
 const TASKS_TAB: BuiltInTab = {
   kind: 'builtin',
@@ -116,7 +113,7 @@ function PluginOverflowMenu({
         <Pill
           isActive={isActive}
           onClick={() => setIsOpen((current) => !current)}
-          className="px-2.5 py-[5px]"
+          className="px-3 py-1.5"
         >
           {activePluginTab ? (
             <PluginIcon
@@ -188,6 +185,10 @@ export default function MainContentTabSwitcher({
       iconFile: p.icon,
     }));
 
+  if (builtInTabs.length === 0 && pluginTabs.length === 0) {
+    return null;
+  }
+
   return (
     <PillBar>
       {builtInTabs.map((tab) => {
@@ -199,7 +200,7 @@ export default function MainContentTabSwitcher({
             <Pill
               isActive={isActive}
               onClick={() => setActiveTab(tab.id)}
-              className="px-2.5 py-[5px]"
+              className="px-3 py-1.5"
             >
               <tab.icon className="h-3.5 w-3.5" strokeWidth={isActive ? 2.2 : 1.8} />
               <span className="hidden lg:inline">{displayLabel}</span>

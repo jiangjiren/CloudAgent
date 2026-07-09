@@ -165,6 +165,45 @@ function shouldUseWindowsPathNormalization(inputPath: string): boolean {
   return inputPath.startsWith('\\\\') || /^[a-zA-Z]:([\\/]|$)/.test(inputPath);
 }
 
+const windowsTrueCasePathCache = new Map<string, string>();
+const WINDOWS_TRUE_CASE_CACHE_LIMIT = 1000;
+
+/**
+ * Windows filesystems are case-insensitive, so `d:\Foo` and `D:\foo` are the
+ * same directory but would otherwise become distinct DB keys (providers record
+ * the cwd with whatever casing the shell happened to use).
+ */
+function canonicalizeWindowsPathCase(windowsPath: string): string {
+  const withUpperDriveLetter = /^[a-z]:/.test(windowsPath)
+    ? `${windowsPath[0].toUpperCase()}${windowsPath.slice(1)}`
+    : windowsPath;
+
+  // Only the filesystem knows the true casing of the remaining segments, and
+  // only local drive paths are cheap enough to resolve synchronously (UNC
+  // shares can block on dead hosts).
+  if (process.platform !== 'win32' || !/^[A-Z]:[\\/]/.test(withUpperDriveLetter)) {
+    return withUpperDriveLetter;
+  }
+
+  const cached = windowsTrueCasePathCache.get(withUpperDriveLetter);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  let resolved = withUpperDriveLetter;
+  try {
+    resolved = fs.realpathSync.native(withUpperDriveLetter);
+  } catch {
+    // The directory may have been deleted; keep the string-normalized form.
+  }
+
+  if (windowsTrueCasePathCache.size >= WINDOWS_TRUE_CASE_CACHE_LIMIT) {
+    windowsTrueCasePathCache.clear();
+  }
+  windowsTrueCasePathCache.set(withUpperDriveLetter, resolved);
+  return resolved;
+}
+
 /**
  * Canonicalizes project/workspace paths for stable DB keys and comparisons.
  *
@@ -173,6 +212,8 @@ function shouldUseWindowsPathNormalization(inputPath: string): boolean {
  * - strip Windows long-path prefixes (`\\?\` and `\\?\UNC\`)
  * - normalize path separators and dot segments
  * - trim trailing separators except for filesystem roots
+ * - canonicalize Windows path casing (uppercase drive letter, and the true
+ *   on-disk casing when the directory still exists)
  */
 export function normalizeProjectPath(inputPath: string): string {
   if (typeof inputPath !== 'string') {
@@ -196,11 +237,9 @@ export function normalizeProjectPath(inputPath: string): string {
 
   const parser = useWindowsPathRules ? path.win32 : path.posix;
   const root = parser.parse(normalized).root;
-  if (normalized === root) {
-    return normalized;
-  }
+  const withoutTrailingSeparators = normalized === root ? normalized : normalized.replace(/[\\/]+$/, '');
 
-  return normalized.replace(/[\\/]+$/, '');
+  return useWindowsPathRules ? canonicalizeWindowsPathCase(withoutTrailingSeparators) : withoutTrailingSeparators;
 }
 
 /**

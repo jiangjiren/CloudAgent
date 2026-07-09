@@ -26,9 +26,11 @@ import ImageViewer from './ImageViewer';
 type FileTreeProps = {
   selectedProject: Project | null;
   onFileOpen?: (filePath: string) => void;
+  /** Collapses the hosting panel; the button renders leftmost in the toolbar. */
+  onCollapsePanel?: () => void;
 };
 
-export default function FileTree({ selectedProject, onFileOpen }: FileTreeProps) {
+export default function FileTree({ selectedProject, onFileOpen, onCollapsePanel }: FileTreeProps) {
   const { t } = useTranslation();
   const [selectedImage, setSelectedImage] = useState<FileTreeImageSelection | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -155,6 +157,7 @@ export default function FileTree({ selectedProject, onFileOpen }: FileTreeProps)
         onNewFolder={() => operations.handleStartCreate('', 'directory')}
         onRefresh={refreshFiles}
         onCollapseAll={collapseAll}
+        onCollapsePanel={onCollapsePanel}
         loading={loading}
         operationLoading={operationLoading}
         isUploading={upload.uploadProgress?.status === 'uploading'}

@@ -66,6 +66,8 @@ export type MainContentHeaderProps = {
   selectedProject: Project;
   selectedSession: ProjectSession | null;
   shouldShowTasksTab: boolean;
+  filePanelOpen: boolean;
+  onToggleFilePanel: () => void;
   isMobile: boolean;
   onMenuClick: () => void;
 };

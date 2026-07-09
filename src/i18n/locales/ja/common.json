@@ -94,7 +94,8 @@
     "createProjectDesktop": "サイドバーのフォルダアイコンをクリックして新しいプロジェクトを作成できます",
     "newSession": "新しいセッション",
     "untitledSession": "無題のセッション",
-    "projectFiles": "プロジェクトファイル"
+    "projectFiles": "プロジェクトファイル",
+    "resizeFilesPanel": "ファイルパネルのサイズを変更"
   },
   "welcome": {
     "backTitle": "前回の続きから始める",
@@ -106,6 +107,7 @@
     "projects": "プロジェクト"
   },
   "fileTree": {
+    "collapsePanel": "パネルを折りたたむ",
     "loading": "ファイルを読み込んでいます...",
     "files": "ファイル",
     "simpleView": "シンプル表示",

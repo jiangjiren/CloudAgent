@@ -94,7 +94,8 @@
     "createProjectDesktop": "사이드바의 폴더 아이콘을 클릭하여 새 프로젝트를 생성하세요",
     "newSession": "새 세션",
     "untitledSession": "제목 없는 세션",
-    "projectFiles": "프로젝트 파일"
+    "projectFiles": "프로젝트 파일",
+    "resizeFilesPanel": "파일 패널 크기 조절"
   },
   "welcome": {
     "backTitle": "지난 작업 이어서 하기",
@@ -106,6 +107,7 @@
     "projects": "프로젝트"
   },
   "fileTree": {
+    "collapsePanel": "패널 접기",
     "loading": "파일 로딩 중...",
     "files": "파일",
     "simpleView": "간단히 보기",

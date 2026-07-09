@@ -1,7 +1,10 @@
+import { lazy, Suspense } from 'react';
 import { ExternalLink, KeyRound, X } from 'lucide-react';
-import StandaloneShell from '../../standalone-shell/view/StandaloneShell';
+
 import { DEFAULT_PROJECT_FOR_EMPTY_SHELL, IS_PLATFORM } from '../../../constants/config';
 import type { LLMProvider } from '../../../types/app';
+
+const StandaloneShell = lazy(() => import('../../standalone-shell/view/StandaloneShell'));
 
 type ProviderLoginModalProps = {
   isOpen: boolean;
@@ -111,7 +114,7 @@ export default function ProviderLoginModal({
                         href="https://aistudio.google.com/app/apikey"
                         target="_blank"
                         rel="noreferrer"
-                        className="flex inline-flex items-center gap-1 text-sm text-blue-600 hover:underline dark:text-blue-400"
+                        className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline dark:text-blue-400"
                       >
                         Google AI Studio <ExternalLink className="h-3 w-3" />
                       </a>
@@ -140,7 +143,9 @@ export default function ProviderLoginModal({
               </button>
             </div>
           ) : (
-            <StandaloneShell project={DEFAULT_PROJECT_FOR_EMPTY_SHELL} command={command} onComplete={handleComplete} minimal={true} />
+            <Suspense fallback={null}>
+              <StandaloneShell project={DEFAULT_PROJECT_FOR_EMPTY_SHELL} command={command} onComplete={handleComplete} minimal={true} />
+            </Suspense>
           )}
         </div>
       </div>

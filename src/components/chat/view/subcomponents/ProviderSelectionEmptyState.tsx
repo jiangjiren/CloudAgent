@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { BookOpen, Bug, GitCompare, type LucideIcon } from "lucide-react";
 
@@ -7,7 +7,8 @@ import type {
   LLMProvider,
   ProviderModelsDefinition,
 } from "../../../../types/app";
-import { NextTaskBanner } from "../../../task-master";
+
+const NextTaskBanner = React.lazy(() => import("../../../task-master/view/NextTaskBanner"));
 
 type ProviderSelectionEmptyStateProps = {
   selectedSession: ProjectSession | null;
@@ -105,10 +106,12 @@ export default function ProviderSelectionEmptyState({
 
           {provider && tasksEnabled && isTaskMasterInstalled && (
             <div className="mt-5">
-              <NextTaskBanner
-                onStartTask={() => setInput(nextTaskPrompt)}
-                onShowAllTasks={onShowAllTasks}
-              />
+              <Suspense fallback={null}>
+                <NextTaskBanner
+                  onStartTask={() => setInput(nextTaskPrompt)}
+                  onShowAllTasks={onShowAllTasks}
+                />
+              </Suspense>
             </div>
           )}
         </div>
@@ -129,10 +132,12 @@ export default function ProviderSelectionEmptyState({
 
           {tasksEnabled && isTaskMasterInstalled && (
             <div className="mt-5">
-              <NextTaskBanner
-                onStartTask={() => setInput(nextTaskPrompt)}
-                onShowAllTasks={onShowAllTasks}
-              />
+              <Suspense fallback={null}>
+                <NextTaskBanner
+                  onStartTask={() => setInput(nextTaskPrompt)}
+                  onShowAllTasks={onShowAllTasks}
+                />
+              </Suspense>
             </div>
           )}
         </div>

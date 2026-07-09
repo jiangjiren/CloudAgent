@@ -94,7 +94,8 @@
     "createProjectDesktop": "点击侧边栏中的文件夹图标以创建新项目",
     "newSession": "新会话",
     "untitledSession": "未命名会话",
-    "projectFiles": "项目文件"
+    "projectFiles": "项目文件",
+    "resizeFilesPanel": "调整文件面板宽度"
   },
   "welcome": {
     "backTitle": "接着上次的进度继续",
@@ -106,6 +107,7 @@
     "projects": "项目"
   },
   "fileTree": {
+    "collapsePanel": "收起面板",
     "loading": "正在加载文件...",
     "files": "文件",
     "simpleView": "简单视图",

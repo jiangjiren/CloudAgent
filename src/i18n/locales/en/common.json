@@ -94,7 +94,8 @@
     "createProjectDesktop": "Create a new project by clicking the folder icon in the sidebar",
     "newSession": "New Session",
     "untitledSession": "Untitled Session",
-    "projectFiles": "Project Files"
+    "projectFiles": "Project Files",
+    "resizeFilesPanel": "Resize files panel"
   },
   "welcome": {
     "backTitle": "Pick up where you left off",
@@ -106,6 +107,7 @@
     "projects": "Projects"
   },
   "fileTree": {
+    "collapsePanel": "Collapse panel",
     "loading": "Loading files...",
     "files": "Files",
     "simpleView": "Simple view",

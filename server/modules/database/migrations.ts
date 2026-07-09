@@ -1,5 +1,8 @@
+import fs from 'node:fs';
+
 import { Database } from 'better-sqlite3';
 
+import { normalizeProjectPath } from '@/shared/utils.js';
 import {
   APP_CONFIG_TABLE_SCHEMA_SQL,
   LAST_SCANNED_AT_SQL,
@@ -401,6 +404,112 @@ const ensureProjectsForSessionPaths = (db: Database): void => {
   `);
 };
 
+const isWindowsStyleProjectPath = (projectPath: string): boolean =>
+  /^[a-zA-Z]:[\\/]/.test(projectPath) || projectPath.startsWith('\\\\');
+
+/**
+ * Rewrites every project path to its canonical form and merges rows that
+ * collapse onto the same directory. Providers historically recorded the cwd
+ * with whatever casing the shell used (`d:\Foo` vs `D:\Foo`), which produced
+ * duplicate sidebar projects on case-insensitive Windows filesystems.
+ */
+const canonicalizeProjectPathsAndMergeDuplicates = (db: Database): void => {
+  if (!tableExists(db, 'projects') || !tableExists(db, 'sessions')) {
+    return;
+  }
+
+  type ProjectRow = {
+    project_id: string;
+    project_path: string;
+    custom_project_name: string | null;
+    isStarred: number | null;
+    isArchived: number | null;
+  };
+  type GroupMember = ProjectRow & { canonicalPath: string; sessionCount: number };
+
+  const rows = db
+    .prepare('SELECT project_id, project_path, custom_project_name, isStarred, isArchived FROM projects')
+    .all() as ProjectRow[];
+  const countSessions = db.prepare('SELECT COUNT(*) AS sessionCount FROM sessions WHERE project_path = ?');
+
+  const groups = new Map<string, GroupMember[]>();
+  for (const row of rows) {
+    const canonicalPath = normalizeProjectPath(row.project_path) || row.project_path;
+    // Case-insensitive grouping is only correct for Windows-style paths.
+    const groupKey = isWindowsStyleProjectPath(canonicalPath) ? canonicalPath.toLowerCase() : canonicalPath;
+    const member: GroupMember = {
+      ...row,
+      canonicalPath,
+      sessionCount: (countSessions.get(row.project_path) as { sessionCount: number }).sessionCount,
+    };
+
+    const bucket = groups.get(groupKey);
+    if (bucket) {
+      bucket.push(member);
+    } else {
+      groups.set(groupKey, [member]);
+    }
+  }
+
+  const groupsNeedingWork = [...groups.values()].filter(
+    (members) => members.length > 1 || members[0].canonicalPath !== members[0].project_path,
+  );
+  if (groupsNeedingWork.length === 0) {
+    return;
+  }
+
+  console.log(
+    `Running migration: Canonicalizing ${groupsNeedingWork.length} project path group(s) with inconsistent casing`,
+  );
+
+  const updateProjectPath = db.prepare('UPDATE projects SET project_path = ? WHERE project_id = ?');
+  const moveSessions = db.prepare('UPDATE sessions SET project_path = ? WHERE project_path = ?');
+  const deleteProject = db.prepare('DELETE FROM projects WHERE project_id = ?');
+  const updateProjectMeta = db.prepare(
+    'UPDATE projects SET custom_project_name = ?, isStarred = ?, isArchived = ? WHERE project_id = ?',
+  );
+
+  db.transaction(() => {
+    for (const members of groupsNeedingWork) {
+      // Prefer a casing confirmed by the filesystem over a string-normalized one.
+      const targetPath =
+        members.map((member) => member.canonicalPath).find((candidate) => fs.existsSync(candidate)) ??
+        members[0].canonicalPath;
+
+      // The row already storing the target path must survive, otherwise
+      // renaming another row onto it would violate the UNIQUE constraint.
+      const survivor =
+        members.find((member) => member.project_path === targetPath) ??
+        [...members].sort((a, b) => b.sessionCount - a.sessionCount)[0];
+      const losers = members.filter((member) => member !== survivor);
+
+      if (survivor.project_path !== targetPath) {
+        updateProjectPath.run(targetPath, survivor.project_id);
+        // ON UPDATE CASCADE already moves the survivor's sessions; the explicit
+        // move keeps the data consistent if foreign keys are off on this connection.
+        moveSessions.run(targetPath, survivor.project_path);
+      }
+
+      let customName = survivor.custom_project_name;
+      let isStarred = survivor.isStarred ? 1 : 0;
+      let isArchived = survivor.isArchived ? 1 : 0;
+
+      for (const loser of losers) {
+        moveSessions.run(targetPath, loser.project_path);
+        deleteProject.run(loser.project_id);
+        customName = customName ?? loser.custom_project_name;
+        isStarred = isStarred || (loser.isStarred ? 1 : 0);
+        // Keep the merged project visible if any duplicate was still active.
+        isArchived = isArchived && loser.isArchived ? 1 : 0;
+      }
+
+      if (losers.length > 0) {
+        updateProjectMeta.run(customName, isStarred, isArchived, survivor.project_id);
+      }
+    }
+  })();
+};
+
 export const runMigrations = (db: Database) => {
   try {
     const usersTableInfo = db.prepare('PRAGMA table_info(users)').all() as { name: string }[];
@@ -429,6 +538,7 @@ export const runMigrations = (db: Database) => {
     rebuildSessionsTableWithProjectSchema(db);
     migrateLegacySessionNames(db);
     ensureProjectsForSessionPaths(db);
+    canonicalizeProjectPathsAndMergeDuplicates(db);
 
     db.exec('CREATE INDEX IF NOT EXISTS idx_session_ids_lookup ON sessions(session_id)');
     db.exec('CREATE INDEX IF NOT EXISTS idx_sessions_project_path ON sessions(project_path)');

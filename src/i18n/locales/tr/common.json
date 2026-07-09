@@ -94,7 +94,8 @@
     "createProjectDesktop": "Kenar çubuğundaki klasör simgesine tıklayarak yeni bir proje oluştur",
     "newSession": "Yeni Oturum",
     "untitledSession": "Adsız Oturum",
-    "projectFiles": "Proje Dosyaları"
+    "projectFiles": "Proje Dosyaları",
+    "resizeFilesPanel": "Dosya panelini yeniden boyutlandır"
   },
   "welcome": {
     "backTitle": "Kaldığın yerden devam et",
@@ -106,6 +107,7 @@
     "projects": "Projeler"
   },
   "fileTree": {
+    "collapsePanel": "Paneli daralt",
     "loading": "Dosyalar yükleniyor...",
     "files": "Dosyalar",
     "simpleView": "Basit görünüm",
