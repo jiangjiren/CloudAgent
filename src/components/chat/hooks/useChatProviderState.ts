@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { getCodexReasoningEffortLevels } from '../../../../shared/codex-effort.js';
 import { authenticatedFetch } from '../../../utils/api';
 import type { EffortLevel, PendingPermissionRequest, PermissionMode } from '../types/types';
 import type {
@@ -12,7 +13,7 @@ import type {
 const FALLBACK_DEFAULT_MODEL: Record<LLMProvider, string> = {
   claude: 'opus',
   cursor: 'gpt-5.3-codex',
-  codex: 'gpt-5.4',
+  codex: 'gpt-5.6-sol',
   gemini: 'gemini-3.1-pro-preview',
   opencode: 'anthropic/claude-sonnet-4-5',
 };
@@ -257,6 +258,19 @@ export function useChatProviderState({ selectedSession, selectedProject }: UseCh
       }
     }
   }, [providerModelCatalog.codex, codexModel]);
+
+  useEffect(() => {
+    const next = codexEffort === 'auto' || getCodexReasoningEffortLevels(codexModel).includes(codexEffort)
+      ? codexEffort
+      : 'auto';
+
+    if (next !== codexEffort) {
+      setCodexEffort(next);
+    }
+    if (localStorage.getItem('codex-effort') !== next) {
+      localStorage.setItem('codex-effort', next);
+    }
+  }, [codexEffort, codexModel]);
 
   useEffect(() => {
     const gemini = providerModelCatalog.gemini;

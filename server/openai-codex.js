@@ -16,6 +16,7 @@
 import { Codex } from '@openai/codex-sdk';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import { isCodexReasoningEffortSupported } from '../shared/codex-effort.js';
 import { notifyRunFailed, notifyRunStopped } from './services/notification-orchestrator.js';
 import { sessionsService } from './modules/providers/services/sessions.service.js';
 import { providerAuthService } from './modules/providers/services/provider-auth.service.js';
@@ -323,10 +324,8 @@ export async function queryCodex(command, options = {}, ws) {
       model: resolvedModel
     };
 
-    // Reasoning effort is only forwarded when it is one of the SDK's known
-    // levels; anything else falls back to the Codex default silently.
-    const CODEX_EFFORT_LEVELS = ['minimal', 'low', 'medium', 'high', 'xhigh'];
-    if (effort && CODEX_EFFORT_LEVELS.includes(effort)) {
+    // Only forward effort levels explicitly supported by the selected model.
+    if (effort && isCodexReasoningEffortSupported(resolvedModel, effort)) {
       threadOptions.modelReasoningEffort = effort;
     }
 

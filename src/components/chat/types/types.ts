@@ -6,8 +6,8 @@ export type PermissionMode = 'default' | 'acceptEdits' | 'auto' | 'bypassPermiss
 
 // 'auto' means "let the model decide" and omits the effort param entirely, so
 // existing sessions keep today's behavior until a user opts into a level.
-// Claude supports low..max; Codex supports minimal..xhigh (no max).
-export type EffortLevel = 'auto' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max';
+// GPT-5.6 Codex models support low..max, with Sol and Terra also supporting ultra.
+export type EffortLevel = 'auto' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max' | 'ultra';
 
 export interface ChatImage {
   data: string;

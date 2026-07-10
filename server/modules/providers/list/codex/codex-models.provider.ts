@@ -21,14 +21,14 @@ import {
 
 export const CODEX_FALLBACK_MODELS: ProviderModelsDefinition = {
   OPTIONS: [
-    { value: 'gpt-5.5', label: 'gpt-5.5' },
-    { value: 'gpt-5.4', label: 'gpt-5.4' },
-    { value: 'gpt-5.4-mini', label: 'gpt-5.4-mini' },
-    { value: 'gpt-5.3-codex', label: 'gpt-5.3-codex' },
-    { value: 'gpt-5.2', label: 'gpt-5.2' },
+    { value: 'gpt-5.6-sol', label: 'GPT-5.6-Sol' },
+    { value: 'gpt-5.6-terra', label: 'GPT-5.6-Terra' },
+    { value: 'gpt-5.6-luna', label: 'GPT-5.6-Luna' },
   ],
-  DEFAULT: 'gpt-5.4',
+  DEFAULT: 'gpt-5.6-sol',
 };
+
+const CODEX_MODEL_PREFIX = 'gpt-5.6-';
 
 type CodexCachedModel = {
   slug?: string;
@@ -57,9 +57,13 @@ const mapCodexModel = (model: CodexCachedModel): ProviderModelOption => ({
   description: readOptionalString(model.description),
 });
 
-const buildCodexModelsDefinition = (models: CodexCachedModel[]): ProviderModelsDefinition => {
+export const buildCodexModelsDefinition = (models: CodexCachedModel[]): ProviderModelsDefinition => {
   const sortedModels = [...models]
-    .filter((model) => model.visibility !== 'hidden' && model.supported_in_api !== false)
+    .filter((model) => (
+      model.slug?.startsWith(CODEX_MODEL_PREFIX)
+      && model.visibility !== 'hidden'
+      && model.supported_in_api !== false
+    ))
     .sort((left, right) => readCodexPriority(left.priority) - readCodexPriority(right.priority));
 
   const options: ProviderModelOption[] = [];

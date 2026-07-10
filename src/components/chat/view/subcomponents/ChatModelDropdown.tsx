@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom";
 import { Check, ChevronDown, ChevronRight, Plug } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { getCodexReasoningEffortLevels } from "../../../../../shared/codex-effort.js";
 
 import type {
   LLMProvider,
@@ -139,8 +140,8 @@ export default function ChatModelDropdown({
 
   // Thinking-depth levels, shown inside the menu rather than as a second
   // toolbar control. 'auto' is the invisible default: nothing is sent to the
-  // backend and no badge appears on the trigger. Each provider exposes a
-  // different subset of levels (Claude has max, Codex has minimal).
+  // backend and no badge appears on the trigger. Codex options are selected
+  // per model because GPT-5.6-Luna does not support ultra.
   const effortLabels: Record<
     EffortLevel,
     { label: string; short: string; description: string }
@@ -195,13 +196,19 @@ export default function ChatModelDropdown({
           defaultValue: "Maximum effort · select models only",
         }),
       },
+      ultra: {
+        label: t("effort.ultra", { defaultValue: "Ultra" }),
+        short: t("effort.ultraShort", { defaultValue: "Ultra" }),
+        description: t("effort.ultraDescription", {
+          defaultValue: "Maximum reasoning with automatic task delegation",
+        }),
+      },
     }),
     [t],
   );
 
   const providerEffortLevels: Partial<Record<LLMProvider, EffortLevel[]>> = {
     claude: ["auto", "low", "medium", "high", "xhigh", "max"],
-    codex: ["auto", "minimal", "low", "medium", "high", "xhigh"],
   };
 
   const getEffortForProvider = useCallback(
@@ -227,7 +234,9 @@ export default function ChatModelDropdown({
   );
 
   const activeEffort = getEffortForProvider(provider);
-  const activeEffortLevels = providerEffortLevels[provider] ?? null;
+  const activeEffortLevels: EffortLevel[] | null = provider === "codex"
+    ? ["auto", ...getCodexReasoningEffortLevels(codexModel) as EffortLevel[]]
+    : providerEffortLevels[provider] ?? null;
 
   // Active provider's group leads the menu; everything else collapses below it.
   const orderedGroups = useMemo(() => {
@@ -447,7 +456,7 @@ export default function ChatModelDropdown({
                   <div className="px-0.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                     {t("effort.title", { defaultValue: "Thinking depth" })}
                   </div>
-                  <div className="mt-1.5 flex rounded-lg border border-border/50 bg-muted/30 p-0.5">
+                  <div className={`mt-1.5 ${activeEffortLevels.length > 6 ? "grid grid-cols-7" : "flex"} rounded-lg border border-border/50 bg-muted/30 p-0.5`}>
                     {activeEffortLevels.map((level) => {
                       const isActive = level === (activeEffort ?? "auto");
                       return (
@@ -455,7 +464,7 @@ export default function ChatModelDropdown({
                           key={level}
                           type="button"
                           onClick={() => handleEffortSelect(provider, level)}
-                          className={`flex-1 rounded-md px-0.5 py-1 text-center text-[10px] transition-colors ${
+                          className={`min-w-0 flex-1 rounded-md px-0.5 py-1 text-center text-[10px] transition-colors ${
                             isActive
                               ? "bg-background font-semibold text-foreground shadow-sm"
                               : "text-muted-foreground hover:text-foreground"
